@@ -14,9 +14,17 @@ func TestGetUserList(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	Init()
-	user, err := GetUserByUsername("a")
+	user, err := GetUserByUsername("b")
 	fmt.Printf("user = %v", user)
 	fmt.Printf("%v", err)
+}
+
+func TestGetUserByUserId(t *testing.T) {
+	Init()
+	user, err := GetUserByUserId(1)
+	fmt.Println(user)
+	fmt.Println(err)
+
 }
 
 func TestInsertUser(t *testing.T) {
