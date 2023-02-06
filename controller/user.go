@@ -3,9 +3,13 @@ package controller
 import (
 	"fmt"
 	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/RaymondCode/simple-demo/module"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
@@ -38,8 +42,6 @@ func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
 	user, _ := dao.GetUserByUsername(username)
 
 	if username == user.UserName {
@@ -49,12 +51,14 @@ func Register(c *gin.Context) {
 	} else {
 		newUser := dao.TableUser{
 			UserName: username,
-			Password: password,
+			Password: module.Encoder(password),
 		}
 		if dao.InsertUser(&newUser) == true {
+			token := module.JwtGenerateToken(newUser, 24*365)
+			log.Println("注册返回的id: ", newUser.Id)
 			c.JSON(http.StatusOK, UserLoginResponse{
 				Response: Response{StatusCode: 0},
-				UserId:   user.Id,
+				UserId:   newUser.Id,
 				Token:    token,
 			})
 		} else {
@@ -69,24 +73,23 @@ func Login(c *gin.Context) {
 
 	fmt.Printf("username=%v, password=%v", username, password)
 
-	token := username + password
-
-	user, _ := dao.GetUserByUsername(username)
+	user, exist := dao.GetUserByUsername(username)
 	fmt.Printf("user= %v", user)
 
-	//if exist != nil {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"StatusCode_": "1",
-	//		"error_msg":   "User Does not Exist",
-	//	})
-	//}
+	if exist != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"StatusCode_": "1",
+			"error_msg":   "User Does not Exist",
+		})
+	}
 
-	if user.Password == password {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   user.Id,
-			Token:    token,
+			Token:    module.JwtGenerateToken(user, time.Hour*24*365),
 		})
+		log.Println("login success!!!")
 	} else {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
@@ -99,17 +102,16 @@ func UserInfo(c *gin.Context) {
 	id, _ := strconv.ParseInt(userId, 10, 64)
 	token := c.Query("token")
 
-	fmt.Println(id, token)
-
+	fmt.Printf("id = %v, token = %v", id, token)
 	//
-	//if user, exist := dao.GetUserByUserId(id); exist {
+	//if user, exist := dao.GetUserByUserId(id); exist != nil {
 	//	c.JSON(http.StatusOK, UserResponse{
-	//		Response: Response{StatusCode: 0},
-	//		User:     user,
+	//		Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
 	//	})
 	//} else {
 	//	c.JSON(http.StatusOK, UserResponse{
-	//		Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
+	//		Response: Response{StatusCode: 0},
+	//		User:     user,
 	//	})
 	//}
 }
