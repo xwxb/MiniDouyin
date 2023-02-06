@@ -1,24 +1,26 @@
 package module
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/RaymondCode/simple-demo/config"
 	"github.com/RaymondCode/simple-demo/dao"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
+/* 因为在原来表上加 jwt.StandardClaims 好像会引发一些bug？
+所以就新建了一个用来认证的类。
+*/
 type userStdClaims struct {
 	jwt.StandardClaims
-	dao.TableUser
+	*dao.TableUser
 }
 
 // 根据 用户（user） 信息创建 token
-func JwtGenerateToken(user dao.TableUser, duration time.Duration) string {
-	user.Password = ""
+func JwtGenerateToken(user *dao.TableUser, duration time.Duration) string {
+	fmt.Printf("JWTuser = %v\n", user)
 	expireTime := time.Now().Add(duration)
 	stdClaims := jwt.StandardClaims{
 		ExpiresAt: expireTime.Unix(),
@@ -32,22 +34,23 @@ func JwtGenerateToken(user dao.TableUser, duration time.Duration) string {
 		TableUser:      user,
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, userClaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaims)
 
-	if tokenString, err := token.SignedString([]byte("")); err != nil {
+	if tokenString, err := token.SignedString([]byte(config.SecretKey)); err == nil {
 		tokenString = "Bearer " + tokenString
+		println("TOKENSTRING = ", tokenString)
 		println("generate token success!\n")
 		return tokenString
 	} else {
-		println("generate token fail\n")
+		fmt.Printf("generate token fail : %v\n", err)
 		return "failed to generate token"
 	}
 }
 
-// 解析 token
-func JwtParseUser(tokenString string) (dao.TableUser, error) {
+// 将用户信息从 token 中解析出来
+func JwtParseUser(tokenString string) (*dao.TableUser, error) {
 	if tokenString == "" {
-		return dao.TableUser{}, errors.New("no token is found")
+		return nil, errors.New("no token is found")
 	}
 
 	claims := userStdClaims{}
@@ -55,18 +58,17 @@ func JwtParseUser(tokenString string) (dao.TableUser, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(""), nil
+		return []byte(config.SecretKey), nil
 	})
 	if err != nil {
-		return dao.TableUser{}, err
+		return nil, err
 	}
 	return claims.TableUser, err
 }
 
 // 注册密码加密
 func Encoder(password string) string {
-	method := hmac.New(sha256.New, []byte(password))
-	encoder := hex.EncodeToString(method.Sum(nil))
-	fmt.Println("Encoder Result: " + encoder)
-	return encoder
+	encoder, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	fmt.Printf("Encoder Result: %v\n", encoder)
+	return string(encoder)
 }

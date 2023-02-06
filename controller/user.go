@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"github.com/RaymondCode/simple-demo/config"
 	"github.com/RaymondCode/simple-demo/dao"
 	"github.com/RaymondCode/simple-demo/module"
 	"github.com/gin-gonic/gin"
@@ -54,7 +55,7 @@ func Register(c *gin.Context) {
 			Password: module.Encoder(password),
 		}
 		if dao.InsertUser(&newUser) == true {
-			token := module.JwtGenerateToken(newUser, 24*365)
+			token := module.JwtGenerateToken(&newUser, config.Duration)
 			log.Println("注册返回的id: ", newUser.Id)
 			c.JSON(http.StatusOK, UserLoginResponse{
 				Response: Response{StatusCode: 0},
@@ -83,11 +84,16 @@ func Login(c *gin.Context) {
 		})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	log.Printf("err=%v\n, userPassword=%v\n, pass=%v\n", err, []byte(user.Password), []byte(password))
+
+	if err == nil {
+		//fmt.Printf("JWTLOGIN:%v\n", module.JwtGenerateToken(&user, config.Duration))
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   user.Id,
-			Token:    module.JwtGenerateToken(user, time.Hour*24*365),
+			Token:    module.JwtGenerateToken(&user, time.Hour*24*365),
 		})
 		log.Println("login success!!!")
 	} else {
@@ -102,8 +108,8 @@ func UserInfo(c *gin.Context) {
 	id, _ := strconv.ParseInt(userId, 10, 64)
 	token := c.Query("token")
 
-	fmt.Printf("id = %v, token = %v", id, token)
-	//
+	log.Printf("id = %v, token = %v", id, token)
+
 	if tableUser, exist := dao.GetUserByUserId(id); exist != nil {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
@@ -112,9 +118,9 @@ func UserInfo(c *gin.Context) {
 		user := User{
 			Id:            tableUser.Id,
 			Name:          tableUser.UserName,
-			FollowerCount: 0,
-			FollowCount:   0,
-			IsFollow:      false,
+			FollowCount:   tableUser.FollowCount,
+			FollowerCount: tableUser.FollowerCount,
+			IsFollow:      tableUser.IsFollow,
 		}
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
