@@ -104,14 +104,21 @@ func UserInfo(c *gin.Context) {
 
 	fmt.Printf("id = %v, token = %v", id, token)
 	//
-	//if user, exist := dao.GetUserByUserId(id); exist != nil {
-	//	c.JSON(http.StatusOK, UserResponse{
-	//		Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-	//	})
-	//} else {
-	//	c.JSON(http.StatusOK, UserResponse{
-	//		Response: Response{StatusCode: 0},
-	//		User:     user,
-	//	})
-	//}
+	if tableUser, exist := dao.GetUserByUserId(id); exist != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
+		})
+	} else {
+		user := User{
+			Id:            tableUser.Id,
+			Name:          tableUser.UserName,
+			FollowerCount: 0,
+			FollowCount:   0,
+			IsFollow:      false,
+		}
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 0},
+			User:     user,
+		})
+	}
 }
