@@ -3,8 +3,8 @@ package module
 import (
 	"errors"
 	"fmt"
-	"github.com/RaymondCode/simple-demo/config"
-	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/xwxb/MiniDouyin/config"
+	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -26,7 +26,7 @@ func JwtGenerateToken(user *dao.TableUser, duration time.Duration) string {
 		ExpiresAt: expireTime.Unix(),
 		IssuedAt:  time.Now().Unix(),
 		Id:        fmt.Sprintf("%d", user.Id),
-		Issuer:    "github.com/RaymondCode/simple-demo",
+		Issuer:    "github.com/xwxb/MiniDouyin",
 	}
 
 	userClaims := userStdClaims{

@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/config"
-	"github.com/RaymondCode/simple-demo/dao"
-	"github.com/RaymondCode/simple-demo/module"
+	"github.com/xwxb/MiniDouyin/config"
+	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/module"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"log"

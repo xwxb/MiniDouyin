@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"github.com/RaymondCode/simple-demo/module"
+	"github.com/xwxb/MiniDouyin/module"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
