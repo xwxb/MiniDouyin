@@ -30,8 +30,8 @@ func TestGetUserByUserId(t *testing.T) {
 func TestInsertUser(t *testing.T) {
 	Init()
 	newUser := &TableUser{
-		UserName: "c",
-		Password: "333",
+		UserName: "a",
+		Password: "111111",
 	}
 
 	res := InsertUser(newUser)

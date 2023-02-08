@@ -5,12 +5,12 @@ import (
 )
 
 type TableUser struct {
-	Id            int64  `grom:"primary_key;AUTO_INCREMENT"`
-	UserName      string `grom:"column: user_name"`
-	Password      string `grom:"column: password"`
-	FollowCount   int64  `grom:"column: follow_count"`
-	FollowerCount int64  `grom:"column: follower_count"`
-	IsFollow      bool   `grom:"is_follow"`
+	Id            int64  `gorm:"primary_key;AUTO_INCREMENT"`
+	UserName      string `gorm:"column:user_name"`
+	Password      string `gorm:"column:password"`
+	FollowCount   int64  `gorm:"column:follow_count"`
+	FollowerCount int64  `gorm:"column:follower_count"`
+	IsFollow      bool   `gorm:"column:is_follow"`
 }
 
 func (user TableUser) TableName() string {
