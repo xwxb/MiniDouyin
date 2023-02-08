@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/xwxb/MiniDouyin/service"
-  "github.com/xwxb/MiniDouyin/dao"
+    "github.com/xwxb/MiniDouyin/dao"
 
 	"github.com/gin-gonic/gin"
 )
