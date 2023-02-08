@@ -3,7 +3,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/RaymondCode/simple-demo/controller"
+	"github.com/xwxb/MiniDouyin/controller"
 	"io"
 	"net"
 	"testing"

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/RaymondCode/simple-demo/dao"
-	"github.com/RaymondCode/simple-demo/service"
+	"github.com/xwxb/MiniDouyin/service"
+  "github.com/xwxb/MiniDouyin/dao"
+
 	"github.com/gin-gonic/gin"
 )
 
