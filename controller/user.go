@@ -1,9 +1,16 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/RaymondCode/simple-demo/config"
+	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/RaymondCode/simple-demo/module"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
-	"sync/atomic"
+	"strconv"
+	"time"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
@@ -36,24 +43,28 @@ func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
+	user, _ := dao.GetUserByUsername(username)
 
-	if _, exist := usersLoginInfo[token]; exist {
+	if username == user.UserName {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
 	} else {
-		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
+		newUser := dao.TableUser{
+			UserName: username,
+			Password: module.Encoder(password),
 		}
-		usersLoginInfo[token] = newUser
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   userIdSequence,
-			Token:    username + password,
-		})
+		if dao.InsertUser(&newUser) == true {
+			token := module.JwtGenerateToken(&newUser, config.Duration)
+			log.Println("注册返回的id: ", newUser.Id)
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{StatusCode: 0},
+				UserId:   newUser.Id,
+				Token:    token,
+			})
+		} else {
+			println("Insert new User Fail")
+		}
 	}
 }
 
@@ -61,14 +72,30 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
+	fmt.Printf("username=%v, password=%v", username, password)
 
-	if user, exist := usersLoginInfo[token]; exist {
+	user, exist := dao.GetUserByUsername(username)
+	fmt.Printf("user= %v", user)
+
+	if exist != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"StatusCode_": "1",
+			"error_msg":   "User Does not Exist",
+		})
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	log.Printf("err=%v\n, userPassword=%v\n, pass=%v\n", err, []byte(user.Password), []byte(password))
+
+	if err == nil {
+		//fmt.Printf("JWTLOGIN:%v\n", module.JwtGenerateToken(&user, config.Duration))
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   user.Id,
-			Token:    token,
+			Token:    module.JwtGenerateToken(&user, time.Hour*24*365),
 		})
+		log.Println("login success!!!")
 	} else {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
@@ -77,16 +104,27 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
+	userId := c.Query("user_id")
+	id, _ := strconv.ParseInt(userId, 10, 64)
 	token := c.Query("token")
 
-	if user, exist := usersLoginInfo[token]; exist {
+	log.Printf("id = %v, token = %v", id, token)
+
+	if tableUser, exist := dao.GetUserByUserId(id); exist != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
+		})
+	} else {
+		user := User{
+			Id:            tableUser.Id,
+			Name:          tableUser.UserName,
+			FollowCount:   tableUser.FollowCount,
+			FollowerCount: tableUser.FollowerCount,
+			IsFollow:      tableUser.IsFollow,
+		}
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User:     user,
-		})
-	} else {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
 		})
 	}
 }
