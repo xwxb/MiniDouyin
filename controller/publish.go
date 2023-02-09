@@ -1,15 +1,20 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/dao"
+	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type VideoListResponse struct {
 	Response
-	VideoList []Video `json:"video_list"`
+	// 我发现 Video 和 TableVideo 字段基本相同,所以直接返回了 TableVideo
+	VideoList []dao.TableVideo `json:"video_list"`
 }
 
 // Publish check token then save upload file to public directory
@@ -48,12 +53,37 @@ func Publish(c *gin.Context) {
 	})
 }
 
-// PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	userId := c.Query("user_id")
+	if userId == "" {
+		log.Println("获取当前用户id失败!")
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "获取失败",
+			},
+		})
+	}
+
+	id, _ := strconv.ParseInt(userId, 10, 64)
+	var publicVideoInfo []dao.TableVideo
+
+	stringInfo, err := dao.GetPublishVideoInfoListByUserId(id)
+	if err != nil {
+		fmt.Printf("获取用户列表失败:%v\n", err)
+	}
+
+	jsonErr := json.Unmarshal([]byte(stringInfo), &publicVideoInfo)
+	if jsonErr != nil {
+		fmt.Println("解码失败")
+	}
+
+	//fmt.Printf("获取到的列表为:"+"\n"+"%v\n", stringInfo)
+
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: publicVideoInfo,
 	})
 }

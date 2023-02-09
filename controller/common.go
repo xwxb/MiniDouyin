@@ -5,6 +5,7 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
+// Video结构体可以弃用了，直接使用TableVideo是一样的
 type Video struct {
 	Id            int64  `json:"id,omitempty"`
 	Author        User   `json:"author"`
