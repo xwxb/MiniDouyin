@@ -5,12 +5,12 @@ import (
 )
 
 type TableUser struct {
-	Id            int64  `gorm:"primary_key;AUTO_INCREMENT"`
-	UserName      string `gorm:"column:user_name"`
-	Password      string `gorm:"column:password"`
-	FollowCount   int64  `gorm:"column:follow_count"`
-	FollowerCount int64  `gorm:"column:follower_count"`
-	IsFollow      bool   `gorm:"column:is_follow"`
+	Id            int64  `gorm:"primary_key;AUTO_INCREMENT" json:"id,omitempty"`
+	UserName      string `gorm:"column:user_name" json:"name,omitempty"`
+	Password      string `gorm:"column:password" json:"-"` // 转化为json格式的时候自动忽略password字段
+	FollowCount   int64  `gorm:"column:follow_count" json:"follow_count"`
+	FollowerCount int64  `gorm:"column:follower_count" json:"follower_count,omitempty"`
+	IsFollow      bool   `gorm:"column:is_follow" json:"is_follow,omitempty"`
 }
 
 func (user TableUser) TableName() string {
@@ -18,7 +18,7 @@ func (user TableUser) TableName() string {
 }
 
 func GetUserList() ([]TableUser, error) {
-	usersList := []TableUser{}
+	var usersList []TableUser
 	if err := Db.Find(&usersList).Error; err != nil {
 		log.Println(err.Error())
 		return usersList, err

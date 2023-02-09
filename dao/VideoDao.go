@@ -1,14 +1,19 @@
 package dao
 
-import "log"
+import (
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
+	"log"
+)
 
 type TableVideo struct {
-	Id            int64  `gorm:"primary_key,auto_increment"`
-	UserId        int64  `gorm:"column:user_id"`
-	PlayUrl       string `gorm:"column:play_url"`
-	CoverUrl      string `gorm:"column:cover_url"`
-	FavoriteCount int64  `gorm:"column:favorite_count"`
-	CommentCount  int64  `gorm:"column:comment_count"`
+	Id            int64     `gorm:"primary_key,auto_increment" json:"id,omitempty"`
+	UserId        int64     `gorm:"column:user_id" json:"-"`
+	PlayUrl       string    `gorm:"column:play_url" json:"play_url,omitempty"`
+	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url,omitempty"`
+	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
+	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
+	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
+	IsFollow      bool      `gorm:"-"`
 }
 
 func (video TableVideo) TableName() string {
@@ -40,4 +45,24 @@ func GetVideosListByUserId(userId int64) ([]TableVideo, error) {
 		return videosList, err
 	}
 	return videosList, nil
+}
+
+// GetPublishVideoInfoListByUserId
+//
+//	 @Description: 根据userId获取用户发布的视频的信息
+//	 @param userId
+//	 @return string 返回的格式是json格式
+//	 @return error
+//		使用了联表查询，将作者信息映射到User里面
+func GetPublishVideoInfoListByUserId(userId int64) (string, error) {
+	var publicVideo []TableVideo
+	err := Db.Model(&TableVideo{}).
+		Preload("Author").
+		Joins("left join user u on user_id = u.id").Where("user_id = ?", userId).
+		Find(&publicVideo).Error
+
+	if err != nil {
+		log.Println("failed")
+	}
+	return jsonUtils.MapToJson(publicVideo), err
 }

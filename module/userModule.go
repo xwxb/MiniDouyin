@@ -18,7 +18,7 @@ type userStdClaims struct {
 	*dao.TableUser
 }
 
-// 根据 用户（user） 信息创建 token
+// JwtGenerateToken 根据 用户（user） 信息创建 token
 func JwtGenerateToken(user *dao.TableUser, duration time.Duration) string {
 	fmt.Printf("JWTuser = %v\n", user)
 	expireTime := time.Now().Add(duration)
@@ -47,7 +47,7 @@ func JwtGenerateToken(user *dao.TableUser, duration time.Duration) string {
 	}
 }
 
-// 将用户信息从 token 中解析出来
+// JwtParseUser 将用户信息从 token 中解析出来
 func JwtParseUser(tokenString string) (*dao.TableUser, error) {
 	if tokenString == "" {
 		return nil, errors.New("no token is found")
