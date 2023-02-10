@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
-	
-	_"gorm.io/driver/mysql"
-	_"gorm.io/gorm"
-)
 
+	"github.com/gin-gonic/gin"
+
+	_ "gorm.io/driver/mysql"
+	_ "gorm.io/gorm"
+)
 
 type FeedResponse struct {
 	Response
@@ -38,7 +38,6 @@ func Feed(c *gin.Context) {
 	// c.JSON(http.StatusOK, resp)
 }
 
-
 // func getFeed() (FeedResponse, error) {
 // 	// 数据库连接
 // 	dsn := "${root:114514@tcp(47.94.10.223:3306)/mdy?charset=utf8mb4&parseTime=True"
@@ -57,7 +56,6 @@ func Feed(c *gin.Context) {
 // 	// todo2 判断用户是否登录
 
 // 	// 如果未登录，根据视频id查询作者信息
-	
 
 // 	//组装返回
 
