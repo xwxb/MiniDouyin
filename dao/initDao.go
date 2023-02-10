@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/xwxb/MiniDouyin/config"
 )
 
 var Db *gorm.DB
@@ -21,7 +23,8 @@ func Init() {
 		},
 	)
 	var err error
-	dsn := "root:114514@tcp(47.94.10.223:3306)/mdy?charset=utf8mb4&parseTime=True&loc=Local"
+
+	dsn := config.LoginHead + "?charset=utf8mb4&parseTime=True&loc=Local"
 	//想要正确的处理time.Time,需要带上 parseTime 参数，
 	//要支持完整的UTF-8编码，需要将 charset=utf8 更改为 charset=utf8mb4
 	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
