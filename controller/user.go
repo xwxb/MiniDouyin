@@ -2,15 +2,16 @@ package controller
 
 import (
 	"fmt"
-	"github.com/xwxb/MiniDouyin/config"
-	"github.com/xwxb/MiniDouyin/dao"
-	"github.com/xwxb/MiniDouyin/module"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/config"
+	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/module"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
@@ -22,7 +23,7 @@ var usersLoginInfo = map[string]User{
 		Name:          "zhanglei",
 		FollowCount:   10,
 		FollowerCount: 5,
-		IsFollow:      true,
+		IsFollow:      false,
 	},
 }
 
