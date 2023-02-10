@@ -35,7 +35,7 @@ func AddComment(comment *TableComment) bool {
 
 // DeleteComment 删除评论，参数为评论id
 func DeleteComment(commentId int64) bool {
-	err := Db.Model(&TableComment{Id: commentId}).Update("delete", false).Error
+	err := Db.Model(&TableComment{Id: commentId}).Update("delete", true).Error
 	if err != nil {
 		log.Println("[删除评论] 产生错误：", err)
 		return false
@@ -55,4 +55,14 @@ func IsCommentUser(commentId, userId int64) bool {
 	}
 	// 判断用户是否正确
 	return res.RowsAffected == 1 && userId == comment.UserId
+}
+
+// GetCommentList 查看视频的所有评论，按发布时间倒序 (不含删除内容)
+func GetCommentList(videoId int64) (commentList []TableComment, err error) {
+	var comments []TableComment
+	res := Db.Model(&TableComment{}).Where(map[string]interface{}{"video_id": videoId, "delete": false}).Find(&comments)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return comments, nil
 }

@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -37,4 +38,16 @@ func TestIsCommentUser(t *testing.T) {
 	fmt.Printf("是否为发布该评论的用户: %v\n", isCommentUser)
 	isCommentUser = IsCommentUser(2, 1)
 	fmt.Printf("是否为发布该评论的用户: %v\n", isCommentUser)
+}
+
+// 获取视频评论
+func TestGetCommentList(t *testing.T) {
+	Init()
+	commentList, err := GetCommentList(1)
+	if err != nil {
+		log.Printf("[获取]")
+	}
+	for idx, comment := range commentList {
+		fmt.Printf("%d - %+v\n", idx, comment)
+	}
 }
