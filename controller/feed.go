@@ -2,18 +2,21 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/service/fedd"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
-	
-	_"gorm.io/driver/mysql"
-	_"gorm.io/gorm"
-)
 
+	_ "gorm.io/driver/mysql"
+	_ "gorm.io/gorm"
+)
 
 type FeedResponse struct {
 	Response
-	VideoList []Video `json:"video_list,omitempty"`
-	NextTime  int64   `json:"next_time,omitempty"`
+	VideoList []dao.TableVideo `json:"video_list,omitempty"`
+	NextTime  int64            `json:"next_time,omitempty"`
 }
 
 func (Video) TableName() string {
@@ -22,10 +25,26 @@ func (Video) TableName() string {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
+	inputTime := c.Query("latest_time")
+	log.Println("传入的时间:" + inputTime)
 
+	var lastTime time.Time
+	if inputTime != "" {
+		latestTime, timeErr := strconv.ParseInt(inputTime, 10, 64)
+		lastTime = time.Unix(latestTime, 0)
+		if timeErr != nil {
+			lastTime = time.Now()
+		}
+	} else {
+		lastTime = time.Now()
+	}
+
+	log.Printf("最后的投稿时间: %v\n", lastTime)
+
+	// 未登入直接返回 feed
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
-		VideoList: DemoVideos,
+		VideoList: fedd.GetFeed(lastTime),
 		NextTime:  time.Now().Unix(),
 	})
 
@@ -37,7 +56,6 @@ func Feed(c *gin.Context) {
 
 	// c.JSON(http.StatusOK, resp)
 }
-
 
 // func getFeed() (FeedResponse, error) {
 // 	// 数据库连接
@@ -57,7 +75,6 @@ func Feed(c *gin.Context) {
 // 	// todo2 判断用户是否登录
 
 // 	// 如果未登录，根据视频id查询作者信息
-	
 
 // 	//组装返回
 
