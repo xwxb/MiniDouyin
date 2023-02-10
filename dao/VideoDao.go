@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"log"
+
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 )
 
 type TableVideo struct {
@@ -13,7 +14,8 @@ type TableVideo struct {
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
 	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
-	IsFollow      bool      `gorm:"-"`
+	IsFavorite    bool      `gorm:"-" json:"is_favorite,omitempty"`
+	Title         string    `gorm:"-" json:"title,omitempty"` // should be `gorm:"column:title"`
 }
 
 func (video TableVideo) TableName() string {

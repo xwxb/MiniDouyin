@@ -7,7 +7,6 @@ import (
 )
 
 func TestGetPublishVideoInfoListByUserId(t *testing.T) {
-	Init()
 	var publicVideo []TableVideo
 	userPublicInfo, err := GetPublishVideoInfoListByUserId(1)
 	if err != nil {
