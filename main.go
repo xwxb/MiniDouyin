@@ -1,14 +1,11 @@
 package main
 
 import (
-	"github.com/xwxb/MiniDouyin/dao"
-	"github.com/xwxb/MiniDouyin/service"
-
 	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/service"
 )
 
 func main() {
-	dao.Init()
 	go service.RunMessageServer()
 
 	r := gin.Default()

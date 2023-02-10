@@ -4,13 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/service/fedd"
+	_ "gorm.io/driver/mysql"
+	_ "gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
-
-	_ "gorm.io/driver/mysql"
-	_ "gorm.io/gorm"
 )
 
 type FeedResponse struct {

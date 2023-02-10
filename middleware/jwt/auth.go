@@ -1,8 +1,8 @@
 package jwt
 
 import (
-	"github.com/xwxb/MiniDouyin/module"
 	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/module"
 	"log"
 	"net/http"
 	"strings"
@@ -17,6 +17,9 @@ type Response struct {
 func Auth() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.Query("token")
+		if len(auth) == 0 {
+			auth = context.Request.PostFormValue("token")
+		}
 
 		log.Println("auth=", auth)
 		if len(auth) == 0 {
