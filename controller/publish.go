@@ -6,9 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"log"
+	"math/rand"
 	"net/http"
-	"path/filepath"
+	"os"
+	"path"
 	"strconv"
+	"time"
 )
 
 type VideoListResponse struct {
@@ -17,40 +20,56 @@ type VideoListResponse struct {
 	VideoList []dao.TableVideo `json:"video_list"`
 }
 
-// Publish check token then save upload file to public directory
+// Publish save upload file to public directory
 func Publish(c *gin.Context) {
-	token := c.PostForm("token")
-
-	if _, exist := usersLoginInfo[token]; !exist {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-		return
-	}
-
 	data, err := c.FormFile("data")
-	if err != nil {
+	if err == nil {
+		Path := "./public/" //存储路径
+		t := time.Now()
+		date := t.Format("20060102")
+		pathTmp := Path + "/ " + date + "/" //以当天日期命名存储文件夹
+		if isDirExists(pathTmp) {
+			log.Println("目录存在")
+		} else {
+			log.Println("目录不存在")
+			err := os.Mkdir(pathTmp, 0777) //创建存储文件夹并设置0777权限
+			if err != nil {
+				//log.Fatal(err)
+				c.JSON(http.StatusOK, Response{
+					StatusCode: -1,
+					StatusMsg:  "mkdir failed",
+				})
+				log.Printf("创建目录时出错了:\n%v", err)
+				return
+			}
+		}
+		//上传文件重命名
+		file_name := strconv.FormatInt(time.Now().Unix(), 10) + strconv.Itoa(rand.Intn(999999-100000)+100000) + path.Ext(data.Filename)
+		uperr := c.SaveUploadedFile(data, pathTmp+file_name) //文件另存为…
+		if uperr == nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 0,
+				StatusMsg:  data.Filename + " uploaded successfully",
+			})
+			log.Printf("%s 上传成功！！", file_name)
+		} else {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 2,
+				StatusMsg:  "upload failed",
+			})
+			log.Printf("上传时出错了:\n%v", uperr)
+			return
+		}
+
+	} else {
+		c.JSON(200, gin.H{"status": 1, "msg": "上传失败"})
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
+		log.Printf("上传时出错了:\n%v", err)
 		return
 	}
-
-	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-	saveFile := filepath.Join("./public/", finalName)
-	if err := c.SaveUploadedFile(data, saveFile); err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, Response{
-		StatusCode: 0,
-		StatusMsg:  finalName + " uploaded successfully",
-	})
 }
 
 func PublishList(c *gin.Context) {
@@ -86,4 +105,13 @@ func PublishList(c *gin.Context) {
 		},
 		VideoList: publicVideoInfo,
 	})
+}
+
+// 目录是否存在
+func isDirExists(filename string) bool {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

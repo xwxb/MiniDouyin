@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/xwxb/MiniDouyin/controller"
-  "github.com/xwxb/MiniDouyin/middleware/jwt"
-  
+	"github.com/xwxb/MiniDouyin/middleware/jwt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +18,7 @@ func initRouter(r *gin.Engine) {
 	apiRouter.GET("/user/", jwt.Auth(), controller.UserInfo)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.Login)
-	apiRouter.POST("/publish/action/", controller.Publish)
+	apiRouter.POST("/publish/action/", jwt.Auth(), controller.Publish)
 	apiRouter.GET("/publish/list/", controller.PublishList)
 
 	// extra apis - I
