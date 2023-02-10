@@ -32,6 +32,14 @@ func CommentAction(c *gin.Context) {
 	if actionType == "1" { // 发布评论
 		// 用户填写的评论内容，在action_type=1的时候使用
 		commentText := c.Query("comment_text")
+		if len(commentText) > 256 {
+			c.JSON(http.StatusOK, gin.H{
+				"status_code": 1,
+				"status_msg":  "评论字数过多",
+				"comment":     nil,
+			})
+			return
+		}
 		// 创建日期 (格式:mm-dd)
 		createDate := time.Now().Format("01-02")
 

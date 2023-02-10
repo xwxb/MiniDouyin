@@ -60,6 +60,7 @@ func IsCommentUser(commentId, userId int64) bool {
 // GetCommentList 查看视频的所有评论，按发布时间倒序 (不含删除内容)
 func GetCommentList(videoId int64) (commentList []TableComment, err error) {
 	var comments []TableComment
+	// TODO 要按发布时间倒序
 	res := Db.Model(&TableComment{}).Where(map[string]interface{}{"video_id": videoId, "delete": false}).Find(&comments)
 	if res.Error != nil {
 		return nil, res.Error
