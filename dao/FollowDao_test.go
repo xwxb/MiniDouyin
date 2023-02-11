@@ -69,3 +69,17 @@ func TestUnfollow(t *testing.T) {
 	}
 	testUnfollow(5, 6)
 }
+
+// (软)删除所有关注记录
+func TestUnfollowAll(t *testing.T) {
+	// 以下数组填入所有用户的 Id
+	userIdList := []int64{1, 3, 4, 5, 6, 7, 8}
+
+	for _, a := range userIdList {
+		for _, b := range userIdList {
+			if a != b {
+				testUnfollow(a, b)
+			}
+		}
+	}
+}
