@@ -60,10 +60,20 @@ func IsCommentUser(commentId, userId int64) bool {
 // GetCommentList 查看视频的所有评论，按发布时间倒序 (不含删除内容)
 func GetCommentList(videoId int64) (commentList []TableComment, err error) {
 	var comments []TableComment
-	// TODO 要按发布时间倒序
-	res := Db.Model(&TableComment{}).Where(map[string]interface{}{"video_id": videoId, "delete": false}).Find(&comments)
+	// 要按发布时间倒序，id随时间递增，保证id降序即可
+	res := Db.Model(&TableComment{}).Order("id desc").Where(map[string]interface{}{"video_id": videoId, "delete": false}).Find(&comments)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return comments, nil
+}
+
+// GetCommentNum 获取视频评论数量 (不含删除内容)
+func GetCommentNum(videoId int64) (commentNum int64, err error) {
+	var comments []TableComment
+	res := Db.Model(&TableComment{}).Where(map[string]interface{}{"video_id": videoId, "delete": false}).Find(&comments)
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return res.RowsAffected, nil
 }

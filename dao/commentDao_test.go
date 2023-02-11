@@ -8,7 +8,6 @@ import (
 
 // 上传评论测试
 func TestAddComment(t *testing.T) {
-	Init()
 	comment := TableComment{
 		VideoId:    1,
 		UserId:     6,
@@ -24,7 +23,6 @@ func TestAddComment(t *testing.T) {
 
 // 删除评论测试
 func TestDeleteComment(t *testing.T) {
-	Init()
 	DeleteComment(3)
 	comment := TableComment{Id: 3}
 	Db.First(&comment)
@@ -33,7 +31,6 @@ func TestDeleteComment(t *testing.T) {
 
 // 判断是否为评论发布人测试
 func TestIsCommentUser(t *testing.T) {
-	Init()
 	isCommentUser := IsCommentUser(2, 6)
 	fmt.Printf("是否为发布该评论的用户: %v\n", isCommentUser)
 	isCommentUser = IsCommentUser(2, 1)
@@ -42,12 +39,25 @@ func TestIsCommentUser(t *testing.T) {
 
 // 获取视频评论
 func TestGetCommentList(t *testing.T) {
-	Init()
 	commentList, err := GetCommentList(1)
 	if err != nil {
-		log.Printf("[获取]")
+		log.Printf("[获取评论异常] 异常%+v", err)
 	}
 	for idx, comment := range commentList {
 		fmt.Printf("%d - %+v\n", idx, comment)
 	}
+}
+
+func TestGetCommentNum(t *testing.T) {
+	num, err := GetCommentNum(1)
+	if err != nil {
+		log.Printf("[获取评论数量异常] 异常%+v", err)
+	}
+	fmt.Printf("评论数:%d\n", num)
+
+	num, err = GetCommentNum(2)
+	if err != nil {
+		log.Printf("[获取评论数量异常] 异常%+v", err)
+	}
+	fmt.Printf("评论数:%d\n", num)
 }

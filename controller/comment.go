@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"log"
@@ -69,9 +68,8 @@ func CommentAction(c *gin.Context) {
 		}
 	} else if actionType == "2" {
 		// 要删除的评论id，在action_type=2的时候使用
-		commentId := c.Query("comment_id")
-		fmt.Printf("%+v\n%s\n%s\n%+v\n", userP, videoId, actionType, commentId)
-		// TODO 删除逻辑未完成
+		commentId, _ := strconv.ParseInt(c.Query("comment_id"), 10, 64)
+		dao.DeleteComment(commentId)
 	}
 }
 
@@ -108,6 +106,7 @@ func toComment(tableCommentList []dao.TableComment) []Comment {
 	for _, c := range tableCommentList {
 		u := User{Id: c.UserId}
 		// TODO 这里缺少根据user_id获取完整user信息及是否关注的逻辑
+
 		res = append(res, Comment{
 			Id:         c.Id,
 			User:       u,
