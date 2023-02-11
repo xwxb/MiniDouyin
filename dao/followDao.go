@@ -19,14 +19,13 @@ func (Follow) TableName() string {
 
 // IsFollowed(A, B) returns if A is followed by B
 func IsFollowed(followId, followerId int64) (bool, error) {
-	//var followList = Follow{}
 	var followList []Follow
-	if err := Db.Where("follow_id = ? AND follower_id = ?", followId, followerId).Find(&followList).Error; err != nil {
+	err := Db.Where("follow_id = ? AND follower_id = ?", followId, followerId).Find(&followList).Error
+	if err != nil {
 		log.Println(err.Error())
 		return false, err
 	}
-	//return followList.Id != 0, nil
-	return len(followList) != 0, nil
+	return (len(followList) != 0), nil
 }
 
 // Get all users that the given user follows.
