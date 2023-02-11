@@ -1,27 +1,27 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/xwxb/MiniDouyin/dao"
-	"github.com/xwxb/MiniDouyin/module"
-	"github.com/xwxb/MiniDouyin/service/feed"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
 	"time"
+	"fmt"
+	_"log"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/service/feed"
+	"github.com/xwxb/MiniDouyin/module"
 )
 
 type FeedResponse struct {
 	Response
-	VideoList []dao.TableVideo `json:"video_list,omitempty"`
+	VideoList []dao.Video `json:"video_list,omitempty"`
 	NextTime  int64            `json:"next_time,omitempty"`
 }
 
-func (Video) TableName() string {
-	return "video"
-}
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
@@ -30,36 +30,28 @@ func Feed(c *gin.Context) {
 	//fmt.Println("用户token" + auth)
 	fmt.Println("传入的时间:" + inputTime)
 
-	var lastTime time.Time
-	latestTime, timeErr := strconv.ParseInt(inputTime, 10, 64)
-	if timeErr != nil {
-		log.Printf("time err: %v\n", timeErr)
-	}
+	t, _ := strconv.ParseInt(inputTime, 10, 64)
+	lastTime := time.Unix(t/1000, 0)
 
-	lastTime = time.Unix(latestTime, 0)
-
-	if lastTime.After(time.Now()) {
-		lastTime = time.Now()
-	}
-
-	log.Printf("最后的投稿时间: %v\n", lastTime)
-
+	var videos []dao.Video
+	var feedErr error
 	if auth == "" {
-		// 未登入直接返回 feed
-		c.JSON(http.StatusOK, FeedResponse{
-			Response:  Response{StatusCode: 0},
-			VideoList: feed.GetFeed(lastTime),
-			NextTime:  time.Now().Unix(),
-		})
+		videos, feedErr = feed.GetFeed(lastTime)// ？先这样，感觉不是很理解这个用上次获取feed时间的逻辑
 	} else {
-		//登入了返回组装好的 feed
 		auth = strings.Fields(auth)[1]
 		user, _ := module.JwtParseUser(auth) // 从 token 解析出 user
-		//log.Printf("传入的用户Id: %v\n", user.Id)
-		c.JSON(http.StatusOK, FeedResponse{
-			Response:  Response{StatusCode: 0},
-			VideoList: feed.GetFeedByUserId(lastTime, user.Id),
-			NextTime:  time.Now().Unix(),
-		})
+		videos, feedErr = feed.GetFeedByUserId(lastTime, user.Id)
 	}
+
+	if feedErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "视频查询出现问题"})
+		return
+	}
+
+	c.JSON(http.StatusOK, FeedResponse{
+		Response:  Response{StatusCode: 0, StatusMsg: "success"},
+		VideoList: videos,
+		NextTime:  time.Now().Unix(),
+	})
+
 }
