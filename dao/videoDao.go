@@ -3,6 +3,7 @@ package dao
 import (
 	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"log"
+	"time"
 )
 
 type TableVideo struct {
@@ -12,8 +13,10 @@ type TableVideo struct {
 	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url,omitempty"`
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
-	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
-	IsFollow      bool      `gorm:"-"`
+	CreateTime    time.Time `gorm:"create_time" json:"-"`
+	Author        TableUser `gorm:"foreignKey:Id;references:UserId" json:"author"`
+	IsFavorite    bool      `gorm:"-"`
+	Title         string    `gorm:"-" json:"title,omitempty"` // should be `gorm:"column:title"`
 }
 
 func (video TableVideo) TableName() string {
@@ -49,11 +52,11 @@ func GetVideosListByUserId(userId int64) ([]TableVideo, error) {
 
 // GetPublishVideoInfoListByUserId
 //
-//	 @Description: 根据userId获取用户发布的视频的信息
-//	 @param userId
-//	 @return string 返回的格式是json格式
-//	 @return error
-//		使用了联表查询，将作者信息映射到User里面
+//	@Description: 根据userId获取用户发布的视频的信息
+//	@param userId
+//	@return string 返回的格式是json格式
+//	@return error
+//	使用了联表查询，将作者信息映射到User里面
 func GetPublishVideoInfoListByUserId(userId int64) (string, error) {
 	var publicVideo []TableVideo
 	err := Db.Model(&TableVideo{}).
@@ -62,7 +65,27 @@ func GetPublishVideoInfoListByUserId(userId int64) (string, error) {
 		Find(&publicVideo).Error
 
 	if err != nil {
-		log.Println("failed")
+		log.Println("failed to get PublishVideoInfoList by userId")
 	}
+	return jsonUtils.MapToJson(publicVideo), err
+}
+
+// GetVideoByCreatedTime
+//
+//	@Description: 根据时间查询晚于该时间发布的视频信息
+//	@param lastTime
+//	@return string
+//	@return error
+func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
+	var publicVideo []TableVideo
+	err := Db.Model(&TableVideo{}).
+		Preload("Author").
+		Joins("left join user u on user_id = u.id").Where("create_time > ?", lastTime).
+		Find(&publicVideo).Error
+
+	if err != nil {
+		log.Println("获取视频信息失败")
+	}
+
 	return jsonUtils.MapToJson(publicVideo), err
 }

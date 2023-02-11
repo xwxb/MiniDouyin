@@ -2,6 +2,8 @@ package controller
 
 import (
 	"net/http"
+	// "strconv"
+	// "strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +20,7 @@ import (
 type FeedResponse struct {
 	Response
 	VideoList []Video `json:"video_list,omitempty"`
-	NextTime  int64   `json:"next_time,omitempty"`
+	NextTime  int64            `json:"next_time,omitempty"`
 }
 
 func (Video) TableName() string {
@@ -40,7 +42,7 @@ func Feed(c *gin.Context) {
 	
 
 	
-	// 数据库连接 不确定是否需要 or 让 Dao.init() 代替
+	// 数据库连接
 	dsn := config.LoginHead + "?charset=utf8mb4&parseTime=True"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 

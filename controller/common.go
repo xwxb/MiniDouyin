@@ -31,11 +31,12 @@ type Comment struct {
 }
 
 type User struct {
-	Id            int64  `json:"id,omitempty"`
-	Name          string `json:"name,omitempty"`
-	FollowCount   int64  `json:"follow_count,omitempty"`
-	FollowerCount int64  `json:"follower_count,omitempty"`
-	IsFollow      bool   `json:"is_follow,omitempty"`
+	Id            int64  `json:"id,omitempty" gorm:"primary_key;AUTO_INCREMENT"`
+	Name          string `json:"name,omitempty" gorm:"column:user_name"`
+	Password      string `json:"-" gorm:"column:password"`
+	FollowCount   int64  `json:"follow_count,omitempty" gorm:"column:follow_count"`
+	FollowerCount int64  `json:"follower_count,omitempty" gorm:"column:follower_count"`
+	IsFollow      bool   `json:"is_follow,omitempty" gorm:"-"`
 }
 
 type Message struct {

@@ -6,21 +6,18 @@ import (
 )
 
 func TestGetUserList(t *testing.T) {
-	Init()
 	list, err := GetUserList()
 	fmt.Printf("userlist = %v", list)
 	fmt.Printf("%v", err)
 }
 
 func TestGetUserByUsername(t *testing.T) {
-	Init()
-	user, err := GetUserByUsername("b")
+	user, err := GetUserByUsername("a")
 	fmt.Printf("user = %v", user)
 	fmt.Printf("%v", err)
 }
 
 func TestGetUserByUserId(t *testing.T) {
-	Init()
 	user, err := GetUserByUserId(1)
 	fmt.Println(user)
 	fmt.Println(err)
@@ -28,7 +25,6 @@ func TestGetUserByUserId(t *testing.T) {
 }
 
 func TestInsertUser(t *testing.T) {
-	Init()
 	newUser := &TableUser{
 		UserName: "a",
 		Password: "111111",
@@ -39,7 +35,6 @@ func TestInsertUser(t *testing.T) {
 }
 
 func TestRemoveUserByUsername(t *testing.T) {
-	Init()
 	res := RemoveUserByUsername("b")
 	fmt.Printf("res = %v", res)
 }

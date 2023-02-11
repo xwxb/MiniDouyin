@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/xwxb/MiniDouyin/controller"
-  "github.com/xwxb/MiniDouyin/middleware/jwt"
-  
+	"github.com/xwxb/MiniDouyin/middleware/jwt"
+
 	"github.com/gin-gonic/gin"
 )
 
