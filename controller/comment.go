@@ -3,9 +3,11 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/module"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -75,12 +77,17 @@ func CommentAction(c *gin.Context) {
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
-	/*c.JSON(http.StatusOK, CommentListResponse{
-		Response:    Response{StatusCode: 0},
-		CommentList: DemoComments,
-	})*/
+	// token (可能不存在或已过期)
+	token := c.Query("token")
 	// 视频id
 	videoId, _ := strconv.ParseInt(c.Query("video_id"), 10, 64)
+
+	// 根据token获取请求方的user
+	userP, err := module.JwtParseUser(strings.Fields(token)[1])
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	// 获取评论列表
 	list, err := dao.GetCommentList(videoId)
 	if err != nil {
 		log.Printf("[获取评论列表] 产生异常: %+v\n", err)
@@ -91,8 +98,9 @@ func CommentList(c *gin.Context) {
 		})
 		return
 	}
-	// TableComment中只有user_id，没有user完整信息，需要转换
-	commentList := toComment(list)
+
+	// TableComment中只有user_id，没有user完整信息和是否关注，需要转换和查找
+	commentList := toComment(list, userP)
 	c.JSON(http.StatusOK, gin.H{
 		"status_code":  0,
 		"status_msg":   "成功",
@@ -101,18 +109,49 @@ func CommentList(c *gin.Context) {
 }
 
 // toComment 将TableComment转换为Comment对象，他们的区别在于TableComment与数据库直接对应，不包含User完整信息
-func toComment(tableCommentList []dao.TableComment) []Comment {
+func toComment(tableCommentList []dao.TableComment, user *dao.TableUser) []Comment {
 	var res []Comment
-	for _, c := range tableCommentList {
-		u := User{Id: c.UserId}
-		// TODO 这里缺少根据user_id获取完整user信息及是否关注的逻辑
+	if user == nil { // 如果没有请求方用户信息(未登录或token过期)，不获取is_follow字段
+		for _, c := range tableCommentList {
+			tableUser, _ := dao.GetUserByUserId(c.UserId)
+			u := User{
+				Id:            c.UserId,
+				Name:          tableUser.UserName,
+				Password:      "",
+				FollowCount:   tableUser.FollowCount,
+				FollowerCount: tableUser.FollowerCount,
+				IsFollow:      false,
+			}
+			res = append(res, Comment{
+				Id:         c.Id,
+				User:       u,
+				Content:    c.Content,
+				CreateDate: c.CreateDate,
+			})
+		}
 
-		res = append(res, Comment{
-			Id:         c.Id,
-			User:       u,
-			Content:    c.Content,
-			CreateDate: c.CreateDate,
-		})
+	} else { // 请求方已登录(token解析出user)，要获取is_follow字段
+		//先获取请求方用户id，再遍历进行转换和查找
+		postUserId := user.Id
+		for _, c := range tableCommentList {
+			tableUser, _ := dao.GetUserByUserId(c.UserId)
+			isFollowed, _ := dao.IsFollowed(postUserId, c.UserId)
+			u := User{
+				Id:            c.UserId,
+				Name:          tableUser.UserName,
+				Password:      "",
+				FollowCount:   tableUser.FollowCount,
+				FollowerCount: tableUser.FollowerCount,
+				IsFollow:      isFollowed,
+			}
+			res = append(res, Comment{
+				Id:         c.Id,
+				User:       u,
+				Content:    c.Content,
+				CreateDate: c.CreateDate,
+			})
+		}
+		//fmt.Printf("用户登录情况下 返回结果: %+v", res)
 	}
 	return res
 }
