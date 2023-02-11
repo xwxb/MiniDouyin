@@ -18,7 +18,7 @@ func toUserTemp(tableUser dao.TableUser) User {
 // 包含 2 个视频，视频 id 分别为 1,2 ，视频的用户 id 分别为 1,3
 //
 // where `init()` calls `dao.GetUserByUserId(userId)`
-var DemoVideos []Video
+// var DemoVideos []Video
 
 func init() {
 	// author1, err := dao.GetUserByUserId(1)

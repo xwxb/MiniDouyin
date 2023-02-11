@@ -1,26 +1,9 @@
 package controller
 
-import (
-	"time"
-)
 
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`
-}
-
-// Video结构体可以弃用了，直接使用TableVideo是一样的
-type Video struct {
-	Id            int64  `json:"id,omitempty"`
-	PlayUrl       string `json:"play_url" json:"play_url,omitempty"`
-	CoverUrl      string `json:"cover_url,omitempty"`
-	FavoriteCount int64  `json:"favorite_count,omitempty"`
-	CommentCount  int64  `json:"comment_count,omitempty"`
-	IsFavorite    bool   `json:"is_favorite,omitempty"`
-
-	UserId    int64 `json:"-`
-	Author    User  `gorm:"foreignKey:UserId" json:"author"` //在User中默认会使用Id作为外键的映射值（即外键引用参考值）
-	CreatedAt time.Time `column:create_time`
 }
 
 type Comment struct {
