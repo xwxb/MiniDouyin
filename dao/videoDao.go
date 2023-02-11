@@ -14,8 +14,8 @@ type TableVideo struct {
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
 	CreateTime    time.Time `gorm:"create_time" json:"-"`
-	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
-	IsFavorite    bool      `gorm:"-" json:"is_favorite,omitempty"`
+	Author        TableUser `gorm:"foreignKey:Id;references:UserId" json:"author"`
+	IsFavorite    bool      `gorm:"-"`
 	Title         string    `gorm:"-" json:"title,omitempty"` // should be `gorm:"column:title"`
 }
 
@@ -80,7 +80,7 @@ func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 	var publicVideo []TableVideo
 	err := Db.Model(&TableVideo{}).
 		Preload("Author").
-		Joins("left join user u on user_id = u.id").Where("create_time < ?", lastTime).
+		Joins("left join user u on user_id = u.id").Where("create_time > ?", lastTime).
 		Find(&publicVideo).Error
 
 	if err != nil {

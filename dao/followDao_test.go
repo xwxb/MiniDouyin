@@ -12,7 +12,7 @@ func handle(err error) {
 }
 
 func TestIsFollowed(t *testing.T) {
-	follow, err := IsFollowed(1, 4)
+	follow, err := IsFollowed(1, 3)
 	fmt.Printf("follow_rela = %v\n", follow)
 	handle(err)
 }

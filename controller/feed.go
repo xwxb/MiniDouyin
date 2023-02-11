@@ -1,14 +1,15 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
-	"github.com/xwxb/MiniDouyin/service/fedd"
-	_ "gorm.io/driver/mysql"
-	_ "gorm.io/gorm"
+	"github.com/xwxb/MiniDouyin/module"
+	"github.com/xwxb/MiniDouyin/service/feed"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,69 +26,40 @@ func (Video) TableName() string {
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
 	inputTime := c.Query("latest_time")
-	log.Println("传入的时间:" + inputTime)
+	auth := c.Query("token")
+	//fmt.Println("用户token" + auth)
+	fmt.Println("传入的时间:" + inputTime)
 
 	var lastTime time.Time
-	if inputTime != "" {
-		latestTime, timeErr := strconv.ParseInt(inputTime, 10, 64)
-		lastTime = time.Unix(latestTime, 0)
-		if timeErr != nil {
-			lastTime = time.Now()
-		}
-	} else {
+	latestTime, timeErr := strconv.ParseInt(inputTime, 10, 64)
+	if timeErr != nil {
+		log.Printf("time err: %v\n", timeErr)
+	}
+
+	lastTime = time.Unix(latestTime, 0)
+
+	if lastTime.After(time.Now()) {
 		lastTime = time.Now()
 	}
 
 	log.Printf("最后的投稿时间: %v\n", lastTime)
 
-	// 未登入直接返回 feed
-	c.JSON(http.StatusOK, FeedResponse{
-		Response:  Response{StatusCode: 0},
-		VideoList: fedd.GetFeed(lastTime),
-		NextTime:  time.Now().Unix(),
-	})
-
-	// resp, err := getFeed()
-
-	// if err != nil {
-	// 	panic("failed to get feed!")
-	// }
-
-	// c.JSON(http.StatusOK, resp)
+	if auth == "" {
+		// 未登入直接返回 feed
+		c.JSON(http.StatusOK, FeedResponse{
+			Response:  Response{StatusCode: 0},
+			VideoList: feed.GetFeed(lastTime),
+			NextTime:  time.Now().Unix(),
+		})
+	} else {
+		//登入了返回组装好的 feed
+		auth = strings.Fields(auth)[1]
+		user, _ := module.JwtParseUser(auth) // 从 token 解析出 user
+		//log.Printf("传入的用户Id: %v\n", user.Id)
+		c.JSON(http.StatusOK, FeedResponse{
+			Response:  Response{StatusCode: 0},
+			VideoList: feed.GetFeedByUserId(lastTime, user.Id),
+			NextTime:  time.Now().Unix(),
+		})
+	}
 }
-
-// func getFeed() (FeedResponse, error) {
-// 	// 数据库连接
-// 	dsn := "${root:114514@tcp(47.94.10.223:3306)/mdy?charset=utf8mb4&parseTime=True"
-// 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-// 	if err != nil {
-// 		panic("failed to connect database")
-// 		return nil, err
-// 	}
-
-// 	db.AutoMigrate(&Video{})
-
-// 	// todo1 添加逻辑：用户投稿
-
-// 	// 查询逻辑
-// 	// todo2 判断用户是否登录
-
-// 	// 如果未登录，根据视频id查询作者信息
-
-// 	//组装返回
-
-// 	var videos []Video
-
-// 	if err := db.Preload("Author").Find(&videos).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	resp := FeedResponse{
-// 		Response:  Response{StatusCode: 0},
-// 		VideoList: []Video{videos},
-// 		NextTime:  time.Now().Unix(),
-// 	}
-
-// 	return resp, nil
-// }
