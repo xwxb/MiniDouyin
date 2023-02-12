@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/middleware/cos"
 	"log"
 	"math/rand"
 	"net/http"
@@ -60,6 +61,8 @@ func Publish(c *gin.Context) {
 			log.Printf("上传时出错了:\n%v", uperr)
 			return
 		}
+		videoURL, _ := cos.UploadToCOS(date, file_name, pathTmp+file_name)
+		log.Printf("视频URL是：%v", videoURL)
 
 	} else {
 		c.JSON(200, gin.H{"status": 1, "msg": "上传失败"})
