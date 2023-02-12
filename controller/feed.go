@@ -22,9 +22,6 @@ type FeedResponse struct {
 	NextTime  int64            `json:"next_time,omitempty"`
 }
 
-var preVideos []dao.Video
-var index int = 0
-
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
 	//获取用户传来的参数
@@ -44,18 +41,17 @@ func Feed(c *gin.Context) {
 	} else { //否则因为第一次会传来上次结束获取的时间，一定比现在早
 		// 给他上一次获取的最后一个视频的时间
 		fmt.Println("不是第一次了")
-		lastTime = preVideos[index].CreatedAt
-		index++
 	}
 
 	var videos []dao.Video
 	var feedErr error
+	var lastestVideoTime time.Time
 	if auth == "" {
-		videos, feedErr = feed.GetFeed(lastTime)// ？先这样，感觉不是很理解这个用上次获取feed时间的逻辑
+		lastestVideoTime, videos, feedErr = feed.GetFeed(lastTime)// ？先这样，感觉不是很理解这个用上次获取feed时间的逻辑
 	} else {
 		auth = strings.Fields(auth)[1]
 		user, _ := module.JwtParseUser(auth) // 从 token 解析出 user
-		videos, feedErr = feed.GetFeedByUserId(lastTime, user.Id)
+		lastestVideoTime, videos, feedErr = feed.GetFeedByUserId(lastTime, user.Id)
 	}
 
 	if feedErr != nil {
@@ -66,10 +62,7 @@ func Feed(c *gin.Context) {
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0, StatusMsg: "success"},
 		VideoList: videos,
-		NextTime:  time.Now().Unix(),
+		NextTime:  lastestVideoTime.Unix(),
 	})
 
-
-	preVideos = append(preVideos, videos...)
-	fmt.Println("len of preV = ",len(preVideos))
 }
