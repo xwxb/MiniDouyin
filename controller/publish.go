@@ -23,6 +23,11 @@ type VideoListResponse struct {
 
 // Publish save upload file to public directory
 func Publish(c *gin.Context) {
+	// (通过token验证解析后得到的)user(的引用)
+	userP := c.MustGet("authUserObj").(*dao.TableUser)
+	// 由于前端返回的是form格式数据，这里要用PostFormValue的方法获取title
+	title := c.Request.PostFormValue("title")
+	// 前端返回的视频数据
 	data, err := c.FormFile("data")
 	if err == nil {
 		Path := "./public/" //存储路径
@@ -61,8 +66,16 @@ func Publish(c *gin.Context) {
 			log.Printf("上传时出错了:\n%v", uperr)
 			return
 		}
-		videoURL, _ := cos.UploadToCOS(date, file_name, pathTmp+file_name)
-		log.Printf("视频URL是：%v", videoURL)
+		// 将所需参数构件好结构体放入channel，实现异步上传到云端
+		// 因为是小项目，我的理解是并发应该不会很大，所以采用队列的方法用单个子线程上传，但如果大项目的话可能也许直接开多线程？
+		currUpload := cos.UploadStruct{
+			Date: date,
+			Filename: file_name,
+			Filepath: pathTmp + file_name,
+			User: userP,
+			Title: title,
+		}
+		cos.ReportDataToUploadChannel(currUpload)
 
 	} else {
 		c.JSON(200, gin.H{"status": 1, "msg": "上传失败"})
@@ -118,3 +131,4 @@ func isDirExists(filename string) bool {
 	}
 	return true
 }
+
