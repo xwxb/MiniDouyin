@@ -17,6 +17,9 @@ type Response struct {
 func Auth() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.Query("token")
+		if len(auth) == 0 {
+			auth = context.Request.PostFormValue("token")
+		}
 
 		// 有的接口的token是通过表格形式的发送的，
 		//当直接获取不到token的时候，试试通过表格获取

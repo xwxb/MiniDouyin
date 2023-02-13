@@ -13,10 +13,10 @@ type TableVideo struct {
 	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url,omitempty"`
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
-	CreateTime    time.Time `gorm:"create_time" json:"-"`//
-	Author        TableUser `gorm:"foreignKey:Id;references:UserId" json:"author"`
-	IsFavorite    bool      `gorm:"-"`
-	Title         string    `gorm:"-" json:"title,omitempty"` // should be `gorm:"column:title"`
+	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
+	IsFavorite    bool      `gorm:"-" json:"is_favorite,omitempty"`
+	Title         string    `gorm:"column:title" json:"title,omitempty"`
+	CreateTime    time.Time	`gorm:"column:create_time" json:"create_time,omitempty"`
 }
 
 type Video struct {
@@ -114,4 +114,13 @@ func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 	}
 
 	return jsonUtils.MapToJson(publicVideo), err
+}
+
+// CreatePublishVideo 上传的视频信息添加到数据库
+func CreatePublishVideo(video *TableVideo) bool {
+	if err := Db.Create(&video).Error; err != nil {
+		log.Println("视频插入到数据库时产生错误：", err)
+		return false
+	}
+	return true
 }
