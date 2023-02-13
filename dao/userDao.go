@@ -10,8 +10,18 @@ type TableUser struct {
 	Password      string `gorm:"column:password" json:"-"` // 转化为json格式的时候自动忽略password字段
 	FollowCount   int64  `gorm:"column:follow_count" json:"follow_count"`
 	FollowerCount int64  `gorm:"column:follower_count" json:"follower_count,omitempty"`
-	IsFollow      bool   `gorm:"column:is_follow" json:"is_follow,omitempty"`
+	IsFollow      bool   `gorm:"-"`
 }
+
+type User struct {
+	Id            int64  `json:"id,omitempty" gorm:"primary_key;AUTO_INCREMENT"`
+	Name          string `json:"name,omitempty" gorm:"column:user_name"`
+	Password      string `json:"-" gorm:"column:password"`
+	FollowCount   int64  `json:"follow_count,omitempty" gorm:"column:follow_count"`
+	FollowerCount int64  `json:"follower_count,omitempty" gorm:"column:follower_count"`
+	IsFollow      bool   `json:"is_follow,omitempty" gorm:"-"`
+}
+
 
 func (user TableUser) TableName() string {
 	return "user"
