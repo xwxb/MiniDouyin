@@ -13,7 +13,7 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
-// jwt 中间件, 每次请求一个路径之前验证一下
+// Auth jwt 中间件, 每次请求一个路径之前验证一下
 func Auth() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth := context.Query("token")
