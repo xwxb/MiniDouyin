@@ -21,7 +21,13 @@ func Auth() gin.HandlerFunc {
 			auth = context.Request.PostFormValue("token")
 		}
 
-		log.Println("auth=", auth)
+		// 有的接口的token是通过表格形式的发送的，
+		//当直接获取不到token的时候，试试通过表格获取
+		if len(auth) == 0 {
+			auth = context.Request.PostFormValue("token")
+		}
+
+		//log.Println("auth=", auth)
 		if len(auth) == 0 {
 			context.Abort()
 			context.JSON(http.StatusUnauthorized, Response{

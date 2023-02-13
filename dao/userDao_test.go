@@ -12,7 +12,7 @@ func TestGetUserList(t *testing.T) {
 }
 
 func TestGetUserByUsername(t *testing.T) {
-	user, err := GetUserByUsername("b")
+	user, err := GetUserByUsername("a")
 	fmt.Printf("user = %v", user)
 	fmt.Printf("%v", err)
 }
