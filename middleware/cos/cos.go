@@ -9,14 +9,15 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
 // 上传视频队列所需的参数
 type UploadStruct struct {
-	Date string `json:"date"`
-	Filename string `json:"filename"`
-	Filepath string `json:"filepath"`
+	Date string `json:"date"`	// 文件创建日期，20230215
+	Filename string `json:"filename"`	// 视频文件名，1676446898304475.mp4
+	Filepath string `json:"filepath"`	// 视频文件本地路径名，./public/20230215/1676446898304475.mp4
 	User *dao.TableUser `json:"user"`
 	Title string `json:"title"`
 }
@@ -89,6 +90,13 @@ func UploadHandle() {
 		if resp {
 			log.Println("视频数据已写入数据库")
 		}
+		// 完成上传后删除本地文件
+		if err := os.Remove(currFilepath); err != nil {
+			log.Println("文件删除时出错了：", currFilepath)
+		} else {
+			log.Println("本地文件删除成功！")
+		}
+
 	}
 }
 

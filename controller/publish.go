@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/middleware/cos"
+	"github.com/xwxb/MiniDouyin/utils/directoryUtils"
 	"log"
 	"math/rand"
 	"net/http"
@@ -34,7 +35,7 @@ func Publish(c *gin.Context) {
 		t := time.Now()
 		date := t.Format("20060102")
 		pathTmp := Path + "/ " + date + "/" //以当天日期命名存储文件夹
-		if isDirExists(pathTmp) {
+		if directoryUtils.IsDirExists(pathTmp) {
 			log.Println("目录存在")
 		} else {
 			log.Println("目录不存在")
@@ -123,12 +124,4 @@ func PublishList(c *gin.Context) {
 	})
 }
 
-// 目录是否存在
-func isDirExists(filename string) bool {
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
 
