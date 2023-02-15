@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,7 +13,7 @@ type UserListResponse struct {
 	UserList []dao.TableUser `json:"user_list"`
 }
 
-// RelationAction no practical effect, just check if token is valid
+// RelationAction does Follow/Unfollow action
 func RelationAction(c *gin.Context) {
 	userId := c.MustGet("authUserObj").(*dao.TableUser).Id
 
@@ -30,64 +29,79 @@ func RelationAction(c *gin.Context) {
 		return
 	}
 
-	var ok bool
-	var msg string
-
 	if actionType == 1 {
-		ok, err = dao.UpFollow(toUserId, userId)
-		msg = "Already followed"
+		_, err = dao.UpFollow(toUserId, userId)
 	} else {
-		ok, err = dao.Unfollow(toUserId, userId)
-		msg = "Already unfollowed"
+		_, err = dao.Unfollow(toUserId, userId)
 	}
 
-	if ok {
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
-	} else if err != nil {
+	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
 	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: msg})
+		c.JSON(http.StatusOK, Response{StatusCode: 0})
 	}
 }
 
-// FollowList all users have same follow list
+// FollowList gets follow list
 func FollowList(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Fatal: invalid user id"})
+	} else {
+		userList, err := dao.GetFollowListByFollowerId(userId)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, UserListResponse{Response: Response{StatusCode: 0}, UserList: userList})
+		}
 	}
-	userList, err := dao.GetFollowListByFollowerId(userId)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
-	}
-	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
-			StatusCode: 0,
-		},
-		UserList: userList,
-	})
 }
 
-// FollowerList
+// FollowerList gets follower list
 func FollowerList(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Fatal: invalid user id"})
+	} else {
+		userList, err := dao.GetFollowerListByFollowId(userId)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, UserListResponse{Response: Response{StatusCode: 0}, UserList: userList})
+		}
 	}
-	userList, err := dao.GetFollowerListByFollowId(userId)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
-	}
-	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
-			StatusCode: 0,
-		},
-		UserList: userList,
-	})
-	fmt.Printf("c: %v\n", c)
 }
 
-// the same with follower list
+// FriendList gets friend list (following & followed by at the same time)
 func FriendList(c *gin.Context) {
-	FollowerList(c)
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	lastTime[userId] = int64(0)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Invalid user id"})
+	} else {
+		followerList, err := dao.GetFollowerListByFollowId(userId)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+			return
+		}
+		followList, err := dao.GetFollowListByFollowerId(userId)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+			return
+		}
+
+		// union two lists
+		set := map[int64]struct{}{}
+		for _, user := range followerList {
+			set[user.Id] = struct{}{}
+		}
+		var userList []dao.TableUser
+		for _, user := range followList {
+			if _, has := set[user.Id]; has {
+				userList = append(userList, user)
+			}
+		}
+
+		c.JSON(http.StatusOK, UserListResponse{Response: Response{StatusCode: 0}, UserList: userList})
+	}
 }
