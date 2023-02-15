@@ -58,7 +58,7 @@ func Feed(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "视频查询出现问题"})
 		return
 	}
-
+	// fmt.Printf("\n\n%v\n\n", videos)
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0, StatusMsg: "success"},
 		VideoList: videos,

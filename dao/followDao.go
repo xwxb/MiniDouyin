@@ -35,7 +35,7 @@ func GetFollowListByFollowerId(followerId int64) ([]TableUser, error) {
 	var followList []TableUser
 
 	condi := "JOIN follow ON follow_id = user.id AND follower_id = ? AND deleted_at IS NULL"
-	if err := Db.Debug().Joins(condi, followerId).Find(&followList).Error; err != nil {
+	if err := Db.Joins(condi, followerId).Find(&followList).Error; err != nil {
 		log.Println(err.Error())
 	}
 	return followList, nil
@@ -48,7 +48,7 @@ func GetFollowerListByFollowId(followId int64) ([]TableUser, error) {
 	var followerList []TableUser
 
 	condi := "JOIN follow ON follower_id = user.id AND follow_id = ? AND deleted_at IS NULL"
-	if err := Db.Debug().Joins(condi, followId).Find(&followerList).Error; err != nil {
+	if err := Db.Joins(condi, followId).Find(&followerList).Error; err != nil {
 		log.Println(err.Error())
 		return followerList, err
 	}
