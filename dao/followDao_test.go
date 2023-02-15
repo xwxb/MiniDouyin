@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+var userIdList = []int64{1, 3, 4, 5, 6, 7, 8}
+
 func handle(err error) {
 	if err != nil {
 		fmt.Printf("err = %v\n", err.Error())
@@ -73,7 +75,6 @@ func TestUnfollow(t *testing.T) {
 // (软)删除所有关注记录
 func TestUnfollowAll(t *testing.T) {
 	// 以下数组填入所有用户的 Id
-	userIdList := []int64{1, 3, 4, 5, 6, 7, 8}
 
 	for _, a := range userIdList {
 		for _, b := range userIdList {

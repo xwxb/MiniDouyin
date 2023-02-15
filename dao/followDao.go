@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"log"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -20,61 +20,41 @@ func (Follow) TableName() string {
 // IsFollowed(A, B) returns if A is followed by B
 func IsFollowed(followId, followerId int64) (bool, error) {
 	var followList []Follow
-
 	condi := "follow_id = ? AND follower_id = ?"
-	if err := Db.Where(condi, followId, followerId).Find(&followList).Error; err != nil {
-		log.Println(err.Error())
-	}
-	return (len(followList) != 0), nil
+	err := Db.Where(condi, followId, followerId).Find(&followList).Error
+	return (len(followList) != 0), err
 }
 
-// Get all users that the given specific follows.
-//
 // Given id of user A, returns list of all user B satisfying "A follows B".
 func GetFollowListByFollowerId(followerId int64) ([]TableUser, error) {
 	var followList []TableUser
-
 	condi := "JOIN follow ON follow_id = user.id AND follower_id = ? AND deleted_at IS NULL"
-	if err := Db.Joins(condi, followerId).Find(&followList).Error; err != nil {
-		log.Println(err.Error())
-	}
-	return followList, nil
+	err := Db.Joins(condi, followerId).Find(&followList).Error
+	return followList, err
 }
 
-// Get all users who follow the specific user.
-//
 // Given id of user B, returns list of all user B satisfying "A follows B".
 func GetFollowerListByFollowId(followId int64) ([]TableUser, error) {
 	var followerList []TableUser
-
 	condi := "JOIN follow ON follower_id = user.id AND follow_id = ? AND deleted_at IS NULL"
-	if err := Db.Joins(condi, followId).Find(&followerList).Error; err != nil {
-		log.Println(err.Error())
-	}
-	return followerList, nil
+	err := Db.Joins(condi, followId).Find(&followerList).Error
+	return followerList, err
 }
 
 // UpFollow(A, B) makes A followed by B
 func UpFollow(followId, followerId int64) (bool, error) {
+	if followId == followerId {
+		return false, errors.New("self following is illegal")
+	}
 	value := &Follow{FollowId: followId, FollowerId: followerId}
 	assign := &Follow{DeletedAt: gorm.DeletedAt{Valid: false}}
-	follow := &Follow{}
-
-	if err := Db.Unscoped().Where(&value).Assign(&assign).FirstOrCreate(&follow).Error; err != nil {
-		log.Println(err.Error())
-		return false, err
-	}
-	return true, nil
+	err := Db.Unscoped().Where(&value).Assign(&assign).FirstOrCreate(&Follow{}).Error
+	return err == nil, err
 }
 
 // Unfollow(A, B) makes A unfollowed by B
 func Unfollow(followId, followerId int64) (bool, error) {
 	follow := &Follow{FollowId: followId, FollowerId: followerId}
-
 	err := Db.Where(&follow).Delete(&follow).Error
-	if err != nil {
-		log.Println(err.Error())
-		return false, err
-	}
-	return true, nil
+	return err == nil, err
 }
