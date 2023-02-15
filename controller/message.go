@@ -1,69 +1,67 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"sync/atomic"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/dao"
 )
-
-var tempChat = map[string][]Message{}
-
-var messageIdSequence = int64(1)
 
 type ChatResponse struct {
 	Response
-	MessageList []Message `json:"message_list"`
+	MessageList []dao.Message `json:"message_list"`
 }
 
-// MessageAction no practical effect, just check if token is valid
+// MessageAction sends a message as described in Request
 func MessageAction(c *gin.Context) {
-	token := c.Query("token")
-	toUserId := c.Query("to_user_id")
 	content := c.Query("content")
-
-	if user, exist := usersLoginInfo[token]; exist {
-		userIdB, _ := strconv.Atoi(toUserId)
-		chatKey := genChatKey(user.Id, int64(userIdB))
-
-		atomic.AddInt64(&messageIdSequence, 1)
-		curMessage := Message{
-			Id:         messageIdSequence,
+	toUserId, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+	} else {
+		fromUserId := c.MustGet("authUserObj").(*dao.TableUser).Id
+		message := dao.Message{
+			FromUserId: fromUserId,
+			ToUserId:   toUserId,
 			Content:    content,
-			CreateTime: time.Now().Format(time.Kitchen),
+			CreateTime: time.Now().UnixMilli(),
 		}
 
-		if messages, exist := tempChat[chatKey]; exist {
-			tempChat[chatKey] = append(messages, curMessage)
+		if _, err := dao.SendMessage(&message); err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
 		} else {
-			tempChat[chatKey] = []Message{curMessage}
+			c.JSON(http.StatusOK, Response{StatusCode: 0})
 		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 }
 
-// MessageChat all users have same follow list
+// restoring the last time a user requested for message list
+var lastTime = map[int64]int64{}
+
+// MessageChat gives a message list between two users
 func MessageChat(c *gin.Context) {
-	token := c.Query("token")
-	toUserId := c.Query("to_user_id")
-
-	if user, exist := usersLoginInfo[token]; exist {
-		userIdB, _ := strconv.Atoi(toUserId)
-		chatKey := genChatKey(user.Id, int64(userIdB))
-
-		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0}, MessageList: tempChat[chatKey]})
+	toUserId, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
 	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	}
-}
+		fromUserId := c.MustGet("authUserObj").(*dao.TableUser).Id
+		var msgList []dao.Message
 
-func genChatKey(userIdA int64, userIdB int64) string {
-	if userIdA > userIdB {
-		return fmt.Sprintf("%d_%d", userIdB, userIdA)
+		if lastTime[fromUserId] == 0 {
+			// opened at the first time
+			msgList, err = dao.GetMessageListByUserId(toUserId, fromUserId)
+		} else {
+			// waiting for new messages
+			msgList, err = dao.GetRecentMessageListByUserId(lastTime[fromUserId], toUserId, fromUserId)
+		}
+
+		if err == nil {
+			lastTime[fromUserId] = time.Now().UnixMilli()
+			c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0}, MessageList: msgList})
+		} else {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		}
 	}
-	return fmt.Sprintf("%d_%d", userIdA, userIdB)
 }
