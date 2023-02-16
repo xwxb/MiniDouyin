@@ -21,22 +21,22 @@ func DeleteDir(rootDir string) {
 			time.Sleep(time.Second * 10)
 			continue
 		}
-		fmt.Println("文件夹列表: ", filePaths)
+		//fmt.Println("文件夹列表: ", filePaths)
 
 		//去除当前日期的文件夹
 		var fileDir []string
-		curDir := time.Now().Format("20060102")
+		//curDir := time.Now().Format("20060102")
 		for _, value := range filePaths {
-			if value != curDir {
+			//if value != curDir {
 				fileDir = append(fileDir, value)
-			}
+			//}
 		}
 		if len(fileDir) == 0 {
-			fmt.Println("没有需要删除的空目录")
+			//fmt.Println("没有需要删除的空目录")
 			time.Sleep(time.Second * 10)
 			continue
 		}
-		fmt.Println("过滤后文件夹列表: ", fileDir)
+		//fmt.Println("过滤后文件夹列表: ", fileDir)
 
 		//获取过滤后文件夹下所有目录列表
 		var fileDirList []string
@@ -47,7 +47,7 @@ func DeleteDir(rootDir string) {
 				continue
 			}
 		}
-		fmt.Println("获取过滤后目录", fileDirList)
+		//fmt.Println("获取过滤后目录", fileDirList)
 
 		//遍历删除空文件夹
 		//for _, dirPath := range filelist {
@@ -62,7 +62,7 @@ func DeleteDir(rootDir string) {
 					fmt.Println(err)
 				}
 			} else {
-				fmt.Printf("目录%v文件数量：%v \n", fileDirList[i], len(files))
+				//fmt.Printf("目录%v文件数量：%v \n", fileDirList[i], len(files))
 			}
 		}
 

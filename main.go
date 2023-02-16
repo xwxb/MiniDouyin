@@ -10,7 +10,7 @@ import (
 func main() {
 	go service.RunMessageServer()
 	go cos.UploadHandle()
-	// 每5秒扫描一次public目录，删除空文件夹
+	// 每10秒扫描一次public目录，删除空文件夹
 	go directoryUtils.DeleteDir("./public/")
 
 	r := gin.Default()
