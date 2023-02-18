@@ -33,15 +33,15 @@ func Feed(c *gin.Context) {
 	//时间处理
 	t, _ := strconv.ParseInt(inputTime, 10, 64)
 	lastTime := time.Unix(t, 0)
-	fmt.Printf("传入的时间 = %v \n", lastTime)
-
+	
 	if lastTime.After(time.Now()) {//暂时按第一次是一个大时间考虑
 		fmt.Println("第一次")
 		lastTime = time.Now()
-	} else { //否则因为第一次会传来上次结束获取的时间，一定比现在早
-		// 给他上一次获取的最后一个视频的时间
-		fmt.Println("不是第一次了")
-	}
+		} else { //否则因为第一次会传来上次结束获取的时间，一定比现在早
+			// 给他上一次获取的最后一个视频的时间
+			fmt.Println("不是第一次了")
+		}
+	fmt.Printf("传入的时间 = %v \n", lastTime)
 
 	var videos []dao.Video
 	var feedErr error
