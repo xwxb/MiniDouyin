@@ -51,11 +51,11 @@ func testUpFollow(a, b int64) {
 }
 
 func TestUpFollow(t *testing.T) {
-	for b := int64(3); b <= int64(6); b++ {
+	for b := int64(3); b <= int64(8); b++ {
 		testUpFollow(1, b)
 	}
-	for a := int64(3); a <= int64(5); a++ {
-		testUpFollow(a, 6)
+	for a := int64(3); a <= int64(8); a++ {
+		testUpFollow(a, 1)
 	}
 }
 

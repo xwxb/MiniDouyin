@@ -49,10 +49,10 @@ func UpFollow(followId, followerId int64) (bool, error) {
 	value := &Follow{FollowId: followId, FollowerId: followerId}
 	assign := &Follow{DeletedAt: gorm.DeletedAt{Valid: false}}
 	var follow = &Follow{}
-	err := Db.Debug().Unscoped().Where(&value).Assign(&assign).FirstOrCreate(&follow).Error
+	err := Db.Unscoped().Where(&value).Assign(&assign).FirstOrCreate(&follow).Error
 	if err == nil && follow.DeletedAt.Valid {
 		follow.DeletedAt.Valid = false
-		err = Db.Debug().Unscoped().Save(&follow).Error
+		err = Db.Unscoped().Save(&follow).Error
 	}
 	return err == nil, err
 }
