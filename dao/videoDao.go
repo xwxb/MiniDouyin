@@ -1,9 +1,10 @@
 package dao
 
 import (
-	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"log"
 	"time"
+
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 )
 
 type TableVideo struct {
@@ -16,7 +17,7 @@ type TableVideo struct {
 	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
 	IsFavorite    bool      `gorm:"-" json:"is_favorite,omitempty"`
 	Title         string    `gorm:"column:title" json:"title,omitempty"`
-	CreateTime    time.Time	`gorm:"column:create_time" json:"create_time,omitempty"`
+	CreateTime    time.Time `gorm:"column:create_time" json:"create_time,omitempty"`
 }
 
 type Video struct {
@@ -26,7 +27,7 @@ type Video struct {
 	FavoriteCount int64  `json:"favorite_count,omitempty"`
 	CommentCount  int64  `json:"comment_count,omitempty"`
 
-	UserId     int64     `json:"-`
+	UserId     int64     `json:"-"`
 	Author     User      `gorm:"foreignKey:UserId" json:"author"` //在User中默认会使用Id作为外键的映射值（即外键引用参考值）
 	CreatedAt  time.Time `gorm:"column:create_time"`
 	IsFavorite bool      `gorm:"-"`
@@ -104,7 +105,7 @@ func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 		Preload("Author").
 		Order("create_time desc").
 		Limit(10).
-		Joins("left join user u on user_id = u.id").//当前视频中能在user表中找到对应人，应该是配合外键
+		Joins("left join user u on user_id = u.id"). //当前视频中能在user表中找到对应人，应该是配合外键
 		Where("create_time < ?", lastTime).
 		Find(&publicVideo).Error
 

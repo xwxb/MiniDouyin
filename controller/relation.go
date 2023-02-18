@@ -75,7 +75,6 @@ func FollowerList(c *gin.Context) {
 // FriendList gets friend list (following & followed by at the same time)
 func FriendList(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	lastTime[userId] = int64(0)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Invalid user id"})
 	} else {
