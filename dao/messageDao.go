@@ -18,14 +18,6 @@ func SendMessage(message *Message) (bool, error) {
 	return err == nil, nil
 }
 
-// returns the list of all messages between u1 and u2
-func GetMessageListByUserId(u1, u2 int64) ([]Message, error) {
-	condi := "from_user_id = ? AND to_user_id = ?"
-	var msgList []Message
-	err := Db.Where(condi, u1, u2).Or(condi, u2, u1).Order("create_time asc").Find(&msgList).Error
-	return msgList, err
-}
-
 // returns the list of messages from fromUserId to toUserId after tm(Unix time)
 func GetRecentMessageListByUserId(tm, fromUserId, toUserId int64) ([]Message, error) {
 	condi := "from_user_id = ? AND to_user_id = ? AND create_time > ?"

@@ -37,31 +37,25 @@ func MessageAction(c *gin.Context) {
 	}
 }
 
-// restoring the last time a user requested for message list
-var lastTime = map[int64]int64{}
-
 // MessageChat gives a message list between two users
 func MessageChat(c *gin.Context) {
+	fromUserId := c.MustGet("authUserObj").(*dao.TableUser).Id
+
 	toUserId, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		return
+	}
+	lastTime, err := strconv.ParseInt(c.Query("pre_msg_time"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		return
+	}
+
+	msgList, err := dao.GetRecentMessageListByUserId(lastTime, toUserId, fromUserId)
+	if err == nil {
+		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0}, MessageList: msgList})
 	} else {
-		fromUserId := c.MustGet("authUserObj").(*dao.TableUser).Id
-		var msgList []dao.Message
-
-		if lastTime[fromUserId] == 0 {
-			// opened at the first time
-			msgList, err = dao.GetMessageListByUserId(toUserId, fromUserId)
-		} else {
-			// waiting for new messages
-			msgList, err = dao.GetRecentMessageListByUserId(lastTime[fromUserId], toUserId, fromUserId)
-		}
-
-		if err == nil {
-			lastTime[fromUserId] = time.Now().UnixMilli()
-			c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0}, MessageList: msgList})
-		} else {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
-		}
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
 	}
 }
