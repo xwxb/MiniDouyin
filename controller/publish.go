@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/middleware/cos"
+	"github.com/xwxb/MiniDouyin/middleware/ffmpeg"
 	"github.com/xwxb/MiniDouyin/utils/directoryUtils"
 	"log"
 	"math/rand"
@@ -31,14 +32,14 @@ func Publish(c *gin.Context) {
 	// 前端返回的视频数据
 	data, err := c.FormFile("data")
 	if err == nil {
-		Path := "./public/" //存储路径
+		Path := "./public" //存储路径
 		t := time.Now()
 		date := t.Format("20060102")
-		pathTmp := Path + "/ " + date + "/" //以当天日期命名存储文件夹
+		pathTmp := Path + "/" + date + "/" //以当天日期命名存储文件夹，./public/20230215/
 		if directoryUtils.IsDirExists(pathTmp) {
-			log.Println("目录存在")
+			fmt.Println("目录存在")
 		} else {
-			log.Println("目录不存在")
+			fmt.Println("目录不存在")
 			err := os.Mkdir(pathTmp, 0777) //创建存储文件夹并设置0777权限
 			if err != nil {
 				//log.Fatal(err)
@@ -46,25 +47,38 @@ func Publish(c *gin.Context) {
 					StatusCode: -1,
 					StatusMsg:  "mkdir failed",
 				})
-				log.Printf("创建目录时出错了:\n%v", err)
+				fmt.Printf("创建目录时出错了:\n%v", err)
 				return
 			}
 		}
-		//上传文件重命名
-		file_name := strconv.FormatInt(time.Now().Unix(), 10) + strconv.Itoa(rand.Intn(999999-100000)+100000) + path.Ext(data.Filename)
+		//生成随机种子
+		seed := strconv.FormatInt(time.Now().Unix(), 10) + strconv.Itoa(rand.Intn(999999-100000)+100000)
+		//上传文件重命名，1676446898304475.mp4
+		file_name := seed + path.Ext(data.Filename)
+		//封面图片命名，1676446898304475.jpg
+		image_name := seed + ".jpg"
 		uperr := c.SaveUploadedFile(data, pathTmp+file_name) //文件另存为…
 		if uperr == nil {
+			//截图
+			go func() {
+				fferr := ffmpeg.Ffmpeg(date+"/"+file_name, date+"/"+image_name)
+				if fferr == nil {
+					fmt.Println("封面截取成功！")
+				} else {
+					fmt.Printf("封面截取失败：%v", fferr)
+				}
+			}()
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 0,
 				StatusMsg:  data.Filename + " uploaded successfully",
 			})
-			log.Printf("%s 上传成功！！", file_name)
+			fmt.Printf("%s 上传成功！！", file_name)
 		} else {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 2,
 				StatusMsg:  "upload failed",
 			})
-			log.Printf("上传时出错了:\n%v", uperr)
+			fmt.Printf("上传时出错了:\n%v", uperr)
 			return
 		}
 		// 将所需参数构件好结构体放入channel，实现异步上传到云端
@@ -73,6 +87,8 @@ func Publish(c *gin.Context) {
 			Date: date,
 			Filename: file_name,
 			Filepath: pathTmp + file_name,
+			Imagename: image_name,
+			Imagepath: pathTmp + image_name,
 			User: userP,
 			Title: title,
 		}
@@ -84,7 +100,7 @@ func Publish(c *gin.Context) {
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
-		log.Printf("上传时出错了:\n%v", err)
+		fmt.Printf("上传时出错了:\n%v", err)
 		return
 	}
 }

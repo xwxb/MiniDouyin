@@ -18,6 +18,8 @@ type UploadStruct struct {
 	Date string `json:"date"`	// 文件创建日期，20230215
 	Filename string `json:"filename"`	// 视频文件名，1676446898304475.mp4
 	Filepath string `json:"filepath"`	// 视频文件本地路径名，./public/20230215/1676446898304475.mp4
+	Imagename string `json:"imagename"`	// 图片文件名，1676446898304475.jpg
+	Imagepath string `json:"imagepath"`	// 封面图片本地路径名，./public/20230215/1676446898304475.jpg
 	User *dao.TableUser `json:"user"`
 	Title string `json:"title"`
 }
@@ -49,11 +51,23 @@ func UploadToCOS(date string, filename string, filepath string) (videoURL string
 	key := date + "/" + filename
 	videoDetails, _, err := GetClient().Object.Upload(context.Background(), key, filepath, nil)
 	if err != nil {
-		log.Printf("上传COS时发生错误：%v", err)
+		log.Printf("视频上传COS时发生错误：%v", err)
 		return "", err
 	}
 	videoURL = videoDetails.Location
 	return videoURL, err
+}
+
+// 上传到COS并返回封面URL
+func UploadImageToCOS(date string, imagename string, imagepath string) (imageURL string, err error) {
+	key := date + "/img/" + imagename
+	ImageDetails, _, err := GetClient().Object.Upload(context.Background(), key, imagepath, nil)
+	if err != nil {
+		log.Printf("封面上传COS时发生错误：%v", err)
+		return "", err
+	}
+	imageURL = ImageDetails.Location
+	return imageURL, err
 }
 
 // 项目启动时调用，监听并获取channel中的数据实现上传COS操作
@@ -72,15 +86,19 @@ func UploadHandle() {
 		currDate := UploadData.Date
 		currFilename := UploadData.Filename
 		currFilepath := UploadData.Filepath
+		currImagename := UploadData.Imagename
+		currImagepath := UploadData.Imagepath
 		userID := UploadData.User.Id
 		title := UploadData.Title
 		videoURL, _ := UploadToCOS(currDate, currFilename, currFilepath)
 		log.Printf("视频URL是：%v", videoURL)
+		imageURL, _ := UploadImageToCOS(currDate, currImagename, currImagepath)
+		log.Printf("图片URL是：%v", imageURL)
 		// 将数据写入数据库
 		video := dao.TableVideo{
 			UserId: userID,
 			PlayUrl: videoURL,
-			CoverUrl: videoURL,
+			CoverUrl: imageURL,
 			FavoriteCount: 0,
 			CommentCount: 0,
 			Title: title,
@@ -90,13 +108,18 @@ func UploadHandle() {
 		if resp {
 			log.Println("视频数据已写入数据库")
 		}
-		// 完成上传后删除本地文件
+		// 完成上传后删除本地视频
 		if err := os.Remove(currFilepath); err != nil {
-			log.Println("文件删除时出错了：", currFilepath)
+			log.Println("视频删除时出错了：", currFilepath)
 		} else {
-			log.Println("本地文件删除成功！")
+			log.Println("本地视频删除成功！")
 		}
-
+		// 完成上传后删除本地图片
+		if err := os.Remove(currImagepath); err != nil {
+			log.Println("图片删除时出错了：", currImagepath)
+		} else {
+			log.Println("本地图片删除成功！")
+		}
 	}
 }
 

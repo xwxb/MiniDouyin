@@ -11,7 +11,7 @@ type TableVideo struct {
 	Id            int64     `gorm:"primary_key,auto_increment" json:"id,omitempty"`
 	UserId        int64     `gorm:"column:user_id" json:"-"`
 	PlayUrl       string    `gorm:"column:play_url" json:"play_url,omitempty"`
-	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url,omitempty"`
+	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url"`
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
 	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
