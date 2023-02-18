@@ -30,7 +30,7 @@ type Video struct {
 	UserId     int64     `json:"-"`
 	Author     User      `gorm:"foreignKey:UserId" json:"author"` //在User中默认会使用Id作为外键的映射值（即外键引用参考值）
 	CreatedAt  time.Time `gorm:"column:create_time"`
-	IsFavorite bool      `gorm:"-"`
+	IsFavorite bool      `gorm:"is_favorite" json:"is_favorite"`
 }
 
 func (Video) TableName() string {
@@ -100,6 +100,8 @@ func GetPublishVideoInfoListByUserId(userId int64) (string, error) {
 //	@return error
 func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 	var publicVideo []Video
+
+	// Db.AutoMigrate(&Video{})
 
 	err := Db.Model(&Video{}).
 		Preload("Author").

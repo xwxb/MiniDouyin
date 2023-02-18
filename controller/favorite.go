@@ -1,27 +1,121 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/module"
+
+	"strings"
+	"strconv"
 )
+
+type FavRequset struct {
+	Token      string `json:"token,omitempty"`
+	VideoId    int64 `json:"video_id,omitempty"`
+	ActionType int64  `json:"action_type,omitempty"`
+}
+
+type FavRespond struct {
+	StatusCode int64 `json:"status_code"`
+	StatusMsg  string `json:"status_msg"`
+}
 
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
-	token := c.Query("token")
+	tk := c.Request.URL.Query().Get("token")
+	vid := c.Request.URL.Query().Get("video_id")
+	at := c.Request.URL.Query().Get("action_type")
 
-	if _, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	vid_int, err := strconv.ParseInt(vid, 10, 64)
+	at_int, err := strconv.ParseInt(at, 10, 64)
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	req := FavRequset{
+		Token: tk,
+		VideoId: vid_int,
+		ActionType: at_int,
+	}
+
+	// fmt.Printf("\n\n%v\n\n", c.Request)
+	// fmt.Printf("\n\n%v\n\n", c.Request.URL)
+	// fmt.Printf("token = %v\n", req.Token)
+	// fmt.Printf("vid = %v\n", req.VideoId)
+	// fmt.Printf("actType = %v\n", req.ActionType)
+
+	//Retrieve the userid
+	var uid int64
+	if req.Token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status_code": 1,
+			"status_msg":  "please login first"})
+		return
+	} else {
+		auth := strings.Fields(req.Token)[1]
+		user, err := module.JwtParseUser(auth) // 从 token 解析出 user
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		// fmt.Printf("\nuser = %v\n", user)
+
+		uid = user.Id
+	}
+	// fmt.Printf("\nuid = %v\n", uid)
+
+	resp := FavRespond {
+		StatusCode: 0,
+	}
+
+	// 考虑是否需要布尔返回值
+	if req.ActionType == 1 {
+		ifFavorAlready, err :=dao.UpFavor(uid, req.VideoId)
+
+		if err != nil {
+			if ifFavorAlready == true {
+				resp.StatusMsg = "Repeated like action"
+			} else {
+				resp.StatusMsg = "like action success!"
+			}
+		} else {
+			resp.StatusMsg = "like action failure!"
+		}
+
+	} else if req.ActionType == 2 {
+		ifUnFavAlready, err := dao.UnFav(uid, req.VideoId)
+
+		if err != nil {
+			if ifUnFavAlready == true {
+				resp.StatusMsg = "Repeated unlike action"
+			} else {
+				resp.StatusMsg = "unlike action success!"
+			}
+		} else {
+			resp.StatusMsg = "unlike action failure!"
+		}
+
+		resp.StatusMsg = "dislike action success!"
+	} else {
+		resp.StatusCode = -1
+		resp.StatusMsg = "Invalid action type"
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 // FavoriteList all users have same favorite video list
-//func FavoriteList(c *gin.Context) {
-//	c.JSON(http.StatusOK, VideoListResponse{
-//		Response: Response{
-//			StatusCode: 0,
-//		},
-//		VideoList: DemoVideos,
-//	})
-//}
+func FavoriteList(c *gin.Context) {
+
+	var DemoVideos []dao.TableVideo
+
+	c.JSON(http.StatusOK, VideoListResponse{
+		Response: Response{
+			StatusCode: 0,
+		},
+		VideoList: DemoVideos,
+	})
+}
