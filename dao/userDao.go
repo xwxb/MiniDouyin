@@ -13,21 +13,27 @@ type TableUser struct {
 	FollowCount     int64  `gorm:"column:follow_count" json:"follow_count"`
 	FollowerCount   int64  `gorm:"column:follower_count" json:"follower_count,omitempty"`
 	IsFollow        bool   `gorm:"-" json:"is_follow"`
-	Avatar          string `gorm:"avatar" json:"avatar"`
-	BackGroundImage string `gorm:"background_image" json:"background_image"`
-	Signature       string `gorm:"signature" json:"signature"`
-	TotalFavorited  int    `gorm:"total_favorited" json:"total_favorited"`
-	WorkCount       int    `gorm:"work_count" json:"work_count"`
-	FavoriteCount   int    `gorm:"favorite_count" json:"favorite_count"`
+	Avatar          string `gorm:"column:avatar" json:"avatar"`
+	BackGroundImage string `gorm:"column:background_image" json:"background_image"`
+	Signature       string `gorm:"column:signature" json:"signature"`
+	TotalFavorited  int    `gorm:"column:total_favorited" json:"total_favorited"`
+	WorkCount       int    `gorm:"column:work_count" json:"work_count"`
+	FavoriteCount   int    `gorm:"column:favorite_count" json:"favorite_count"`
 }
 
 type User struct {
-	Id            int64  `json:"id,omitempty" gorm:"primary_key;AUTO_INCREMENT"`
-	Name          string `json:"name,omitempty" gorm:"column:user_name"`
-	Password      string `json:"-" gorm:"column:password"`
-	FollowCount   int64  `json:"follow_count,omitempty" gorm:"column:follow_count"`
-	FollowerCount int64  `json:"follower_count,omitempty" gorm:"column:follower_count"`
-	IsFollow      bool   `json:"is_follow,omitempty" gorm:"-"`
+	Id              int64  `json:"id,omitempty" gorm:"primary_key;AUTO_INCREMENT"`
+	Name            string `json:"name,omitempty" gorm:"column:user_name"`
+	Password        string `json:"-" gorm:"column:password"`
+	FollowCount     int64  `json:"follow_count,omitempty" gorm:"column:follow_count"`
+	FollowerCount   int64  `json:"follower_count,omitempty" gorm:"column:follower_count"`
+	IsFollow        bool   `json:"is_follow,omitempty" gorm:"-"`
+	Avatar          string `gorm:"column:avatar" json:"avatar"`
+	BackGroundImage string `gorm:"column:background_image" json:"background_image"`
+	Signature       string `gorm:"column:signature" json:"signature"`
+	TotalFavorited  int    `gorm:"column:total_favorited" json:"total_favorited"`
+	WorkCount       int    `gorm:"column:work_count" json:"work_count"`
+	FavoriteCount   int    `gorm:"column:favorite_count" json:"favorite_count"`
 }
 
 func (user TableUser) TableName() string {

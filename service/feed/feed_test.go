@@ -13,6 +13,6 @@ func TestGetFeed(t *testing.T) {
 }
 
 func TestGetFeedByUserId(t *testing.T) {
-	_, feed, _ := GetFeedByUserId(time.Now(), 1)
+	_, feed, _ := GetFeedByUserId(time.Now(), 3)
 	fmt.Println(jsonUtils.MapToJson(feed))
 }
