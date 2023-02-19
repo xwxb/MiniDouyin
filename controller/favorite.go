@@ -10,6 +10,9 @@ import (
 
 	"strings"
 	"strconv"
+
+	"encoding/json"
+	"log"
 )
 
 type FavRequset struct {
@@ -107,15 +110,38 @@ func FavoriteAction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// FavoriteList all users have same favorite video list
+// have list by userid
 func FavoriteList(c *gin.Context) {
+	userId := c.Query("user_id")
+	if userId == "" {
+		log.Println("获取当前用户id失败!")
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "获取失败",
+			},
+		})
+	}
 
-	var DemoVideos []dao.TableVideo
+	id, _ := strconv.ParseInt(userId, 10, 64)
+	var favorVideoInfo []dao.TableVideo
+
+	stringInfo, err := dao.GetFavorVideoInfoListByUserId(id)
+	if err != nil {
+		fmt.Printf("获取用户列表失败:%v\n", err)
+	}
+
+	jsonErr := json.Unmarshal([]byte(stringInfo), &favorVideoInfo)
+	if jsonErr != nil {
+		fmt.Println("解码失败")
+	}
+
+	//fmt.Printf("获取到的列表为:"+"\n"+"%v\n", stringInfo)
 
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: favorVideoInfo,
 	})
 }
