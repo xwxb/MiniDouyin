@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,18 +18,6 @@ import (
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      false,
-	},
-}
-
-var userIdSequence = int64(1)
-
 type UserLoginResponse struct {
 	Response
 	UserId int64  `json:"user_id,omitempty"`
@@ -37,7 +26,7 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	Response
-	User User `json:"user"`
+	User dao.TableUser `json:"user"`
 }
 
 func Register(c *gin.Context) {
@@ -52,8 +41,11 @@ func Register(c *gin.Context) {
 		})
 	} else {
 		newUser := dao.TableUser{
-			UserName: username,
-			Password: module.Encoder(password),
+			UserName:        username,
+			Password:        module.Encoder(password),
+			Avatar:          "https://minidouyin-1316819372.cos.ap-guangzhou.myqcloud.com/defaultavatar.png",
+			BackGroundImage: "https://minidouyin-1316819372.cos.ap-guangzhou.myqcloud.com/background.png",
+			Signature:       "这个人很懒，什么都没有写",
 		}
 		if dao.InsertUser(&newUser) == true {
 			token := module.JwtGenerateToken(&newUser, config.Duration)
@@ -116,16 +108,17 @@ func UserInfo(c *gin.Context) {
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
 		})
 	} else {
-		user := User{
-			Id:            tableUser.Id,
-			Name:          tableUser.UserName,
-			FollowCount:   tableUser.FollowCount,
-			FollowerCount: tableUser.FollowerCount,
-			IsFollow:      tableUser.IsFollow,
-		}
+		fmt.Println("User = ", jsonUtils.MapToJson(tableUser))
+		//user := User{
+		//	Id:            tableUser.Id,
+		//	Name:          tableUser.UserName,
+		//	FollowCount:   tableUser.FollowCount,
+		//	FollowerCount: tableUser.FollowerCount,
+		//	IsFollow:      tableUser.IsFollow,
+		//}
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
-			User:     user,
+			User:     tableUser,
 		})
 	}
 }

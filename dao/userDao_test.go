@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 func TestGetUserByUserId(t *testing.T) {
 	user, err := GetUserByUserId(1)
-	fmt.Println(user)
+	fmt.Println(jsonUtils.MapToJson(user))
 	fmt.Println(err)
 
 }
@@ -37,4 +38,12 @@ func TestInsertUser(t *testing.T) {
 func TestRemoveUserByUsername(t *testing.T) {
 	res := RemoveUserByUsername("b")
 	fmt.Printf("res = %v", res)
+}
+
+func TestUpdateUserByNum(t *testing.T) {
+	if err := UpdateUserByNum(1, "favorite_count", 1); err != nil {
+		fmt.Println("更新失败")
+		fmt.Println(err)
+	}
+	fmt.Println("更新成功")
 }

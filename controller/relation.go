@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
+	"github.com/xwxb/MiniDouyin/service/user"
 )
 
 type UserListResponse struct {
@@ -29,10 +30,17 @@ func RelationAction(c *gin.Context) {
 		return
 	}
 
+	var ok bool
 	if actionType == 1 {
-		_, err = dao.UpFollow(toUserId, userId)
+		ok, err = dao.UpFollow(toUserId, userId)
+		if ok {
+			user.AddFollowCount(userId)
+		}
 	} else {
-		_, err = dao.Unfollow(toUserId, userId)
+		ok, err = dao.Unfollow(toUserId, userId)
+		if ok {
+			user.AddFollowerCount(toUserId)
+		}
 	}
 
 	if err != nil {
