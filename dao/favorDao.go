@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"log"
-	"errors"
+
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 )
 
 type TableFavor struct {
@@ -14,6 +16,22 @@ type TableFavor struct {
 }
 
 func (favor TableFavor) TableName() string {
+	return "favor"
+}
+
+type Favor struct {
+	Id      int64 `gorm:"primary_key;AUTO_INCREMENT"`
+	UserId  int64 `gorm:"user_id"`
+	VideoId int64 `gorm:"video_id"`
+	gorm.DeletedAt
+}
+
+//	func (TableVideo) TableName() string {
+//		return "video"
+//	}
+//
+// 方法
+func (Favor) TableName() string {
 	return "favor"
 }
 
@@ -41,7 +59,7 @@ func UpFavor(userId int64, videoId int64) (bool, error) {
 			// fav.DeletedAt.Valid = false
 			Db.Model(&fav).Unscoped().Where(&fav).Update("deleted_at", nil)
 			log.Println("将软删除设置为了无效")
-			
+
 			// Increase the value of "favorite_count" by 1
 			Db.Model(&Video{}).
 				Where("id = ?", videoId).
@@ -90,9 +108,52 @@ func UnFav(userId int64, videoId int64) (bool, error) {
 
 			return false, nil
 		}
-	} 
+	}
 
 	//不然就是重复操作
 	return true, errors.New("repeat operation")
+
+}
+
+// 以favor表的形式得到favorlist
+func GetFavorList() ([]Favor, error) {
+	var favorList []Favor
+	if err := Db.Find(&favorList).Error; err != nil {
+		log.Println(err.Error())
+		return favorList, err
+	}
+	return favorList, nil
+}
+
+// 在favor表中得到某个userid对应的所有videoid 待测试 好像没用
+// get userid from favor
+// get videoid by userid
+// get favorlist by videoid
+func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
+	var favorList []TableVideo
+	if err := Db.Joins("Join favor f ON f.video_id = id").Where("favor.user_id = ?", userId).Find(&favorList).Error; err != nil {
+		log.Println(err.Error())
+		return favorList, err
+	}
+	// if err := Db.Where("user_id = ?", userId).Find(&favorList).Error; err != nil {
+	// 	log.Println(err.Error())
+	// 	return favorList, err
+	// }
+	return favorList, nil
+}
+
+// 实际调用的函数
+func GetFavorVideoInfoListByUserId(userId int64) (string, error) {
+	var favorVideo []TableVideo
+
+	err := Db.Model(&TableVideo{}).
+		Preload("Author").
+		Joins("join favor f on video.id = f.video_id").
+		Where("f.user_id = ?", userId).
+		Find(&favorVideo).Error
 	
+	if err != nil {
+		log.Println("failed")
+	}
+	return jsonUtils.MapToJson(favorVideo), err
 }

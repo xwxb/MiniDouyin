@@ -10,6 +10,9 @@ import (
 
 	"strings"
 	"strconv"
+
+	"encoding/json"
+	"log"
 )
 
 type FavRequset struct {
@@ -107,15 +110,76 @@ func FavoriteAction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// FavoriteList all users have same favorite video list
-func FavoriteList(c *gin.Context) {
+// //暂时没发现这个是干嘛的
+// func Favor(c *gin.Context) {
+// 	token := c.PostForm("token")
 
-	var DemoVideos []dao.TableVideo
+// 	if _, exist := usersLoginInfo[token]; !exist {
+// 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+// 		return
+// 	}
+
+// 	data, err := c.FormFile("data")
+// 	if err != nil {
+// 		c.JSON(http.StatusOK, Response{
+// 			StatusCode: 1,
+// 			StatusMsg:  err.Error(),
+// 		})
+// 		return
+// 	}
+
+// 	filename := filepath.Base(data.Filename)
+// 	user := usersLoginInfo[token]
+// 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+// 	//save file
+// 	saveFile := filepath.Join("./favor/", finalName)
+// 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
+// 		c.JSON(http.StatusOK, Response{
+// 			StatusCode: 1,
+// 			StatusMsg:  err.Error(),
+// 		})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, Response{
+// 		StatusCode: 0,
+// 		StatusMsg:  finalName + " uploaded successfully",
+// 	})
+
+// }
+
+// have list by userid
+func FavoriteList(c *gin.Context) {
+	userId := c.Query("user_id")
+	if userId == "" {
+		log.Println("获取当前用户id失败!")
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "获取失败",
+			},
+		})
+	}
+
+	id, _ := strconv.ParseInt(userId, 10, 64)
+	var favorVideoInfo []dao.TableVideo
+
+	stringInfo, err := dao.GetFavorVideoInfoListByUserId(id)
+	if err != nil {
+		fmt.Printf("获取用户列表失败:%v\n", err)
+	}
+
+	jsonErr := json.Unmarshal([]byte(stringInfo), &favorVideoInfo)
+	if jsonErr != nil {
+		fmt.Println("解码失败")
+	}
+
+	//fmt.Printf("获取到的列表为:"+"\n"+"%v\n", stringInfo)
 
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: favorVideoInfo,
 	})
 }
