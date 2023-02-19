@@ -110,44 +110,6 @@ func FavoriteAction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// //暂时没发现这个是干嘛的
-// func Favor(c *gin.Context) {
-// 	token := c.PostForm("token")
-
-// 	if _, exist := usersLoginInfo[token]; !exist {
-// 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-// 		return
-// 	}
-
-// 	data, err := c.FormFile("data")
-// 	if err != nil {
-// 		c.JSON(http.StatusOK, Response{
-// 			StatusCode: 1,
-// 			StatusMsg:  err.Error(),
-// 		})
-// 		return
-// 	}
-
-// 	filename := filepath.Base(data.Filename)
-// 	user := usersLoginInfo[token]
-// 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-// 	//save file
-// 	saveFile := filepath.Join("./favor/", finalName)
-// 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
-// 		c.JSON(http.StatusOK, Response{
-// 			StatusCode: 1,
-// 			StatusMsg:  err.Error(),
-// 		})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, Response{
-// 		StatusCode: 0,
-// 		StatusMsg:  finalName + " uploaded successfully",
-// 	})
-
-// }
-
 // have list by userid
 func FavoriteList(c *gin.Context) {
 	userId := c.Query("user_id")
