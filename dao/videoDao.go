@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"gorm.io/gorm"
 	"log"
 	"time"
 
@@ -14,7 +15,7 @@ type TableVideo struct {
 	CoverUrl      string    `gorm:"column:cover_url" json:"cover_url"`
 	FavoriteCount int64     `gorm:"column:favorite_count" json:"favorite_count,omitempty"`
 	CommentCount  int64     `gorm:"column:comment_count" json:"comment_count,omitempty"`
-	Author        TableUser `gorm:"foreignKey:Id;references:UserId"`
+	Author        TableUser `gorm:"foreignKey:Id;references:UserId" json:"author"`
 	IsFavorite    bool      `gorm:"-" json:"is_favorite,omitempty"`
 	Title         string    `gorm:"column:title" json:"title,omitempty"`
 	CreateTime    time.Time `gorm:"column:create_time" json:"create_time,omitempty"`
@@ -57,7 +58,11 @@ func GetVideoList() ([]TableVideo, error) {
 
 func GetVideoByVideoId(id int64) (TableVideo, error) {
 	video := TableVideo{}
-	if err := Db.Where("id = ?", id).First(&video).Error; err != nil {
+
+	if err := Db.Model(&TableVideo{}).
+		Preload("Author").
+		Joins("left join user u on user_id = u.id").Where("video.id = ?", id).
+		Find(&video).Error; err != nil {
 		log.Println(err.Error())
 		return video, err
 	}
@@ -124,6 +129,17 @@ func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 func CreatePublishVideo(video *TableVideo) bool {
 	if err := Db.Create(&video).Error; err != nil {
 		log.Println("视频插入到数据库时产生错误：", err)
+		return false
+	}
+	return true
+}
+
+func UpdateFavoriteCountByVideoId(videoId int64) bool {
+	if err := Db.Model(&Video{}).
+		Where("id = ?", videoId).
+		Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).
+		Error; err != nil {
+		log.Println("更新视频喜欢数量失败")
 		return false
 	}
 	return true
