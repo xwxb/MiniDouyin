@@ -46,6 +46,7 @@ func GetFeedByUserId(latestTime time.Time, userId int64) (time.Time, []dao.Video
 		FeedList[k].IsFavorite = dao.JudgeFavorByUserId(userId, v.Id)
 		// log.Println(FeedList[k].IsFavorite)
 		FeedList[k].Author.IsFollow, _ = dao.IsFollowed(userId, v.Author.Id)
+		FeedList[k].CommentCount, _ = dao.GetCommentNum(FeedList[k].Id)
 	}
 	//fmt.Printf("登入获取的feed流：%v\n", FeedList)
 	return FeedList[len(FeedList)-1].CreatedAt, FeedList, nil

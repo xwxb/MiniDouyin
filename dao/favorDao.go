@@ -59,7 +59,10 @@ func GetFavorList() ([]Favor, error) {
 // get favorlist by videoid
 func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
 	var favorList []TableVideo
-	if err := Db.Joins("Join favor f ON f.video_id = id").Where("favor.user_id = ?", userId).Find(&favorList).Error; err != nil {
+	if err := Db.Table("favor").
+		Joins("left Join video v ON favor.video_id = v.id").
+		Where("favor.user_id = ? and favor.deleted_at is null", userId).
+		Scan(&favorList).Error; err != nil {
 		log.Println(err.Error())
 		return favorList, err
 	}
@@ -70,11 +73,10 @@ func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
 func GetFavorVideoInfoListByUserId(userId int64) (string, error) {
 	var favorVideo []TableVideo
 
-	err := Db.Model(&TableVideo{}).
-		Preload("Author").
-		Joins("join favor f on video.id = f.video_id").
-		Where("f.user_id = ?", userId).
-		Find(&favorVideo).Error
+	err := Db.Table("favor").
+		Joins("left Join video v ON favor.video_id = v.id").
+		Where("favor.user_id = ? and favor.deleted_at is null", userId).
+		Scan(&favorVideo).Error
 
 	if err != nil {
 		log.Println("failed")
