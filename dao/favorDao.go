@@ -25,10 +25,6 @@ type Favor struct {
 	gorm.DeletedAt
 }
 
-//	func (TableVideo) TableName() string {
-//		return "video"
-//	}
-//
 // 方法
 func (Favor) TableName() string {
 	return "favor"
@@ -70,7 +66,7 @@ func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
 	return favorList, nil
 }
 
-// 实际调用的函数
+// 喜欢列表实际调用的函数
 func GetFavorVideoInfoListByUserId(userId int64) (string, error) {
 	var favorVideo []TableVideo
 
