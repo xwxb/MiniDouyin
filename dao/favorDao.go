@@ -26,10 +26,6 @@ type Favor struct {
 	gorm.DeletedAt
 }
 
-//	func (TableVideo) TableName() string {
-//		return "video"
-//	}
-//
 // 方法
 func (Favor) TableName() string {
 	return "favor"
@@ -86,31 +82,42 @@ func UpFavor(userId int64, videoId int64) (bool, error) {
 }
 
 func UnFav(userId int64, videoId int64) (bool, error) {
-	// log.Println("执行软删除操作")
+	log.Println("执行软删除操作")
 	fav := &TableFavor{UserId: userId, VideoId: videoId}
 
 	//如果软删除过了，就执行里面的处理，否则直接创建这条记录; 测试创建成功
 	if found := (Db.Unscoped().First(&fav).Error == nil); found {
-		if fav.DeletedAt.Valid { //有软删除记录，说明重复操作了
+		log.Println("成功找到喜欢记录")
+		if fav.DeletedAt.Valid == false { //软删除字段的时间非空，有软删除记录，说明重复操作了
+			log.Println("该记录已经被软删除过了")
 			return true, errors.New("repeat operation")
 		} else { //有，但没有软删除过，正常删除
-			err := Db.Where(&fav).Delete(&fav).Error
+
+			log.Println("正常执行软删除操作")
+			err := Db.Delete(&fav).Error
+
 			if err != nil {
 				log.Println(err.Error())
-				log.Println("软删除失败")
+				// log.Println("软删除失败")
 				return false, err
 			}
 
 			//数据库视频表点赞数 - 1
-			Db.Model(&Video{}).
+			err = Db.Model(&Video{}).
 				Where("id = ?", videoId).
-				Update("favorite_count", gorm.Expr("favorite_count - ?", 1))
+				Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error
+			if err != nil {
+				log.Println(err.Error())
+				return false, err
+			}
 
 			return false, nil
 		}
+	} else {
+		log.Println("没有找到点赞目标视频！")
 	}
 
-	//不然就是重复操作
+	//不然也是重复操作
 	return true, errors.New("repeat operation")
 
 }
@@ -142,7 +149,7 @@ func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
 	return favorList, nil
 }
 
-// 实际调用的函数
+// 喜欢列表实际调用的函数
 func GetFavorVideoInfoListByUserId(userId int64) (string, error) {
 	var favorVideo []TableVideo
 
@@ -151,7 +158,7 @@ func GetFavorVideoInfoListByUserId(userId int64) (string, error) {
 		Joins("join favor f on video.id = f.video_id").
 		Where("f.user_id = ?", userId).
 		Find(&favorVideo).Error
-	
+
 	if err != nil {
 		log.Println("failed")
 	}
