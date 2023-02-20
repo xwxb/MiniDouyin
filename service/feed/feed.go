@@ -2,9 +2,10 @@ package feed
 
 import (
 	"encoding/json"
-	"github.com/xwxb/MiniDouyin/dao"
 	"log"
 	"time"
+
+	"github.com/xwxb/MiniDouyin/dao"
 )
 
 func GetFeed(latestTime time.Time) (time.Time, []dao.Video, error) {
@@ -46,7 +47,7 @@ func GetFeedByUserId(latestTime time.Time, userId int64) (time.Time, []dao.Video
 		vids = append(vids, v.Id)
 		uids = append(uids, v.Author.Id)
 	}
-	
+
 	favStats := dao.JudgeFavorByUserIdMult(userId, vids)
 	folStats := dao.IsFollowedMult(userId, uids)
 
@@ -55,7 +56,7 @@ func GetFeedByUserId(latestTime time.Time, userId int64) (time.Time, []dao.Video
 		FeedList[i].IsFavorite = favStats[i]
 		// log.Println(FeedList[k].IsFavorite)
 		FeedList[i].Author.IsFollow = folStats[i]
-		FeedList[k].CommentCount, _ = dao.GetCommentNum(FeedList[k].Id)
+		FeedList[i].CommentCount, _ = dao.GetCommentNum(FeedList[i].Id)
 	}
 	//fmt.Printf("登入获取的feed流：%v\n", FeedList)
 	return FeedList[len(FeedList)-1].CreatedAt, FeedList, nil
