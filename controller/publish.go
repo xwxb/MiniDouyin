@@ -62,6 +62,22 @@ func Publish(c *gin.Context) {
 		image_name := seed + ".jpg"
 		uperr := c.SaveUploadedFile(data, pathTmp+file_name) //文件另存为…
 		if uperr == nil {
+			//更新用户投稿数，作品数+1
+			err := user.AddWorkCount(userP.Id)
+			if err != nil {
+				c.JSON(http.StatusOK, Response{
+					StatusCode: 2,
+					StatusMsg:  "database error",
+				})
+				fmt.Println("更改数据库失败！")
+				if err := os.Remove(pathTmp + file_name); err != nil {
+					log.Println("视频删除时出错了：", pathTmp+file_name)
+				} else {
+					fmt.Println("本地视频已删除")
+				}
+				return
+			}
+
 			//截图
 			go func() {
 				fferr := ffmpeg.Ffmpeg(date+"/"+file_name, date+"/"+image_name)
@@ -72,22 +88,10 @@ func Publish(c *gin.Context) {
 				}
 			}()
 
-			// 作品数+1
-			err := user.AddWorkCount(userP.Id)
-			if err != nil {
-				c.JSON(http.StatusOK, Response{
-					StatusCode: 2,
-					StatusMsg:  "database error",
-				})
-				fmt.Println("更改数据库失败！")
-				return
-			}
-
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 0,
 				StatusMsg:  data.Filename + " uploaded successfully",
 			})
-
 			fmt.Printf("%s 上传成功！！", file_name)
 		} else {
 			c.JSON(http.StatusOK, Response{
