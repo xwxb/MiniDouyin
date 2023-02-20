@@ -43,6 +43,25 @@ func JudgeFavorByUserId(userId int64, videoId int64) bool {
 	return false
 }
 
+func JudgeFavorByUserIdMult(userId int64, vids []int64) []bool {
+
+	var favs []TableFavor
+	Db.Where("user_id = ? AND video_id IN (?)", userId, vids).Find(&favs)
+
+	favMap := make(map[int64]bool)
+	for _, like := range favs {
+		favMap[like.VideoId] = true
+	}
+
+	favStats := make([]bool, len(vids))
+	for i, vid := range vids {
+		favStats[i] = favMap[vid]
+	}
+
+	return favStats
+
+}
+
 // 以favor表的形式得到favorlist
 func GetFavorList() ([]Favor, error) {
 	var favorList []Favor
@@ -59,10 +78,10 @@ func GetFavorList() ([]Favor, error) {
 // get favorlist by videoid
 func GetFavorListByUserId(userId int64) ([]TableVideo, error) {
 	var favorList []TableVideo
-	if err := Db.Table("favor").
-		Joins("left Join video v ON favor.video_id = v.id").
-		Where("favor.user_id = ? and favor.deleted_at is null", userId).
-		Scan(&favorList).Error; err != nil {
+	if err := Db.
+		Joins("Join favor f ON f.video_id = id").
+		Where("favor.user_id = ?", userId).
+		Find(&favorList).Error; err != nil {
 		log.Println(err.Error())
 		return favorList, err
 	}

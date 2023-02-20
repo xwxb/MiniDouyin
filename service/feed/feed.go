@@ -41,11 +41,20 @@ func GetFeedByUserId(latestTime time.Time, userId int64) (time.Time, []dao.Video
 		log.Printf("err = %v\n", err)
 	}
 
+	var vids, uids []int64
+	for _, v := range FeedList {
+		vids = append(vids, v.Id)
+		uids = append(uids, v.Author.Id)
+	}
+	
+	favStats := dao.JudgeFavorByUserIdMult(userId, vids)
+	folStats := dao.IsFollowedMult(userId, uids)
+
 	// 封装 isFavorite 和 isFollow
-	for k, v := range FeedList {
-		FeedList[k].IsFavorite = dao.JudgeFavorByUserId(userId, v.Id)
+	for i, _ := range FeedList {
+		FeedList[i].IsFavorite = favStats[i]
 		// log.Println(FeedList[k].IsFavorite)
-		FeedList[k].Author.IsFollow, _ = dao.IsFollowed(userId, v.Author.Id)
+		FeedList[i].Author.IsFollow = folStats[i]
 		FeedList[k].CommentCount, _ = dao.GetCommentNum(FeedList[k].Id)
 	}
 	//fmt.Printf("登入获取的feed流：%v\n", FeedList)

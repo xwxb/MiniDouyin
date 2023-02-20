@@ -5,8 +5,8 @@ import (
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/module"
 	"github.com/xwxb/MiniDouyin/service/feed"
+	
 	"log"
-	_ "log"
 	"net/http"
 	"strconv"
 	"strings"
