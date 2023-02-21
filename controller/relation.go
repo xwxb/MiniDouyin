@@ -35,11 +35,13 @@ func RelationAction(c *gin.Context) {
 		ok, err = dao.UpFollow(toUserId, userId)
 		if ok {
 			user.AddFollowCount(userId)
+			user.AddFollowerCount(toUserId)
 		}
 	} else {
 		ok, err = dao.Unfollow(toUserId, userId)
 		if ok {
-			user.AddFollowerCount(toUserId)
+			user.SubFollowCount(userId)
+			user.SubFollowerCount(toUserId)
 		}
 	}
 
