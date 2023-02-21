@@ -19,9 +19,10 @@ func SendMessage(message *Message) (bool, error) {
 }
 
 // returns the list of messages from fromUserId to toUserId after tm(Unix time)
-func GetRecentMessageListByUserId(tm, fromUserId, toUserId int64) ([]Message, error) {
+func GetRecentMessageListByUserId(tm, u1, u2 int64) ([]Message, error) {
 	condi := "from_user_id = ? AND to_user_id = ? AND create_time > ?"
+	order := "create_time ASC"
 	var msgList []Message
-	err := Db.Where(condi, fromUserId, toUserId, tm).Order("create_time ASC").Find(&msgList).Error
+	err := Db.Where(condi, u1, u2, tm).Or(condi, u2, u1, tm).Order(order).Find(&msgList).Error
 	return msgList, err
 }
