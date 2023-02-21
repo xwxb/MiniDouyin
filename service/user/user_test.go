@@ -62,7 +62,7 @@ func TestAddWorkCount(t *testing.T) {
 }
 
 func TestAddTotalFavorite(t *testing.T) {
-	if err := AddFollowerCount(1); err != nil {
+	if err := AddTotalFavorite(1); err != nil {
 		fmt.Println("增加total_favorite失败")
 		fmt.Println(err)
 	}

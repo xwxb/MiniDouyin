@@ -25,6 +25,28 @@ func IsFollowed(followId, followerId int64) (bool, error) {
 	return (len(followList) != 0), err
 }
 
+func IsFollowedMult(followerId int64, followIds []int64) []bool {
+	//怎么感觉这个函数签名参数列表命名反过来了。。
+	var followList []Follow
+
+	//find all
+	condi := "follower_id = ? AND follow_id IN (?)"
+	Db.Where(condi, followerId, followIds).Find(&followList)
+
+	//map userid to if-follow
+	folMap := make(map[int64]bool)
+	for _, fol := range followList {
+		folMap[fol.FollowId] = true
+	}
+
+	folStats := make([]bool, len(followIds))
+	for i, followId := range followIds {
+		folStats[i] = folMap[followId]
+	}
+
+	return folStats
+}
+
 // Given id of user A, returns list of all user B satisfying "A follows B".
 func GetFollowListByFollowerId(followerId int64) ([]TableUser, error) {
 	var followList []TableUser

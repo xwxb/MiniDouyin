@@ -2,14 +2,15 @@ package controller
 
 import (
 	"fmt"
+	"github.com/xwxb/MiniDouyin/service/favor"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/module"
 
-	"strings"
 	"strconv"
+	"strings"
 
 	"encoding/json"
 	"log"
@@ -17,12 +18,12 @@ import (
 
 type FavRequset struct {
 	Token      string `json:"token,omitempty"`
-	VideoId    int64 `json:"video_id,omitempty"`
+	VideoId    int64  `json:"video_id,omitempty"`
 	ActionType int64  `json:"action_type,omitempty"`
 }
 
 type FavRespond struct {
-	StatusCode int64 `json:"status_code"`
+	StatusCode int64  `json:"status_code"`
 	StatusMsg  string `json:"status_msg"`
 }
 
@@ -39,8 +40,8 @@ func FavoriteAction(c *gin.Context) {
 	}
 
 	req := FavRequset{
-		Token: tk,
-		VideoId: vid_int,
+		Token:      tk,
+		VideoId:    vid_int,
 		ActionType: at_int,
 	}
 
@@ -70,13 +71,13 @@ func FavoriteAction(c *gin.Context) {
 	}
 	// fmt.Printf("\nuid = %v\n", uid)
 
-	resp := FavRespond {
+	resp := FavRespond{
 		StatusCode: 0,
 	}
 
 	// 考虑是否需要布尔返回值
 	if req.ActionType == 1 {
-		ifFavorAlready, err :=dao.UpFavor(uid, req.VideoId)
+		ifFavorAlready, err := favor.UpFavor(uid, req.VideoId)
 
 		if err != nil {
 			if ifFavorAlready == true {
@@ -89,7 +90,7 @@ func FavoriteAction(c *gin.Context) {
 		}
 
 	} else if req.ActionType == 2 {
-		ifUnFavAlready, err := dao.UnFav(uid, req.VideoId)
+		ifUnFavAlready, err := favor.UnFav(uid, req.VideoId)
 
 		if err != nil {
 			if ifUnFavAlready == true {

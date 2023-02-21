@@ -109,13 +109,7 @@ func UserInfo(c *gin.Context) {
 		})
 	} else {
 		fmt.Println("User = ", jsonUtils.MapToJson(tableUser))
-		//user := User{
-		//	Id:            tableUser.Id,
-		//	Name:          tableUser.UserName,
-		//	FollowCount:   tableUser.FollowCount,
-		//	FollowerCount: tableUser.FollowerCount,
-		//	IsFollow:      tableUser.IsFollow,
-		//}
+
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User:     tableUser,

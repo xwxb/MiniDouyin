@@ -3,6 +3,7 @@ package dao
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/xwxb/MiniDouyin/utils/jsonUtils"
 	"testing"
 	"time"
 )
@@ -31,4 +32,12 @@ func TestGetVideoByCreatedTime(t *testing.T) {
 		fmt.Println("解码失败")
 	}
 	fmt.Println(publicVideo)
+}
+
+func TestGetVideoByVideoId(t *testing.T) {
+	res, err := GetVideoByVideoId(50)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(jsonUtils.MapToJson(res))
 }

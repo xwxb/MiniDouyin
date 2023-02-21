@@ -7,13 +7,13 @@ import (
 )
 
 type TableUser struct {
-	Id              int64  `gorm:"primary_key;AUTO_INCREMENT" json:"id,omitempty"`
+	Id              int64  `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
 	UserName        string `gorm:"column:user_name" json:"name,omitempty"`
 	Password        string `gorm:"column:password" json:"-"` // 转化为json格式的时候自动忽略password字段
 	FollowCount     int64  `gorm:"column:follow_count" json:"follow_count"`
-	FollowerCount   int64  `gorm:"column:follower_count" json:"follower_count,omitempty"`
+	FollowerCount   int64  `gorm:"column:follower_count" json:"follower_count"`
 	IsFollow        bool   `gorm:"-" json:"is_follow"`
-	Avatar          string `gorm:"column:avatar" json:"avatar"`
+	Avatar          string `gorm:"column:avatar" json:"avatar,omitempty"`
 	BackGroundImage string `gorm:"column:background_image" json:"background_image"`
 	Signature       string `gorm:"column:signature" json:"signature"`
 	TotalFavorited  int    `gorm:"column:total_favorited" json:"total_favorited"`

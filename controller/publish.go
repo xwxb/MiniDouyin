@@ -7,6 +7,7 @@ import (
 	"github.com/xwxb/MiniDouyin/dao"
 	"github.com/xwxb/MiniDouyin/middleware/cos"
 	"github.com/xwxb/MiniDouyin/middleware/ffmpeg"
+	"github.com/xwxb/MiniDouyin/service/user"
 	"github.com/xwxb/MiniDouyin/utils/directoryUtils"
 	"log"
 	"math/rand"
@@ -27,8 +28,10 @@ type VideoListResponse struct {
 func Publish(c *gin.Context) {
 	// (通过token验证解析后得到的)user(的引用)
 	userP := c.MustGet("authUserObj").(*dao.TableUser)
+
 	// 由于前端返回的是form格式数据，这里要用PostFormValue的方法获取title
 	title := c.Request.PostFormValue("title")
+
 	// 前端返回的视频数据
 	data, err := c.FormFile("data")
 	if err == nil {
@@ -59,6 +62,22 @@ func Publish(c *gin.Context) {
 		image_name := seed + ".jpg"
 		uperr := c.SaveUploadedFile(data, pathTmp+file_name) //文件另存为…
 		if uperr == nil {
+			//更新用户投稿数，作品数+1
+			err := user.AddWorkCount(userP.Id)
+			if err != nil {
+				c.JSON(http.StatusOK, Response{
+					StatusCode: 2,
+					StatusMsg:  "database error",
+				})
+				fmt.Println("更改数据库失败！")
+				if err := os.Remove(pathTmp + file_name); err != nil {
+					log.Println("视频删除时出错了：", pathTmp+file_name)
+				} else {
+					fmt.Println("本地视频已删除")
+				}
+				return
+			}
+
 			//截图
 			go func() {
 				fferr := ffmpeg.Ffmpeg(date+"/"+file_name, date+"/"+image_name)
@@ -68,6 +87,7 @@ func Publish(c *gin.Context) {
 					fmt.Printf("封面截取失败：%v", fferr)
 				}
 			}()
+
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 0,
 				StatusMsg:  data.Filename + " uploaded successfully",
@@ -84,13 +104,13 @@ func Publish(c *gin.Context) {
 		// 将所需参数构件好结构体放入channel，实现异步上传到云端
 		// 因为是小项目，我的理解是并发应该不会很大，所以采用队列的方法用单个子线程上传，但如果大项目的话可能也许直接开多线程？
 		currUpload := cos.UploadStruct{
-			Date: date,
-			Filename: file_name,
-			Filepath: pathTmp + file_name,
+			Date:      date,
+			Filename:  file_name,
+			Filepath:  pathTmp + file_name,
 			Imagename: image_name,
 			Imagepath: pathTmp + image_name,
-			User: userP,
-			Title: title,
+			User:      userP,
+			Title:     title,
 		}
 		cos.ReportDataToUploadChannel(currUpload)
 
@@ -139,5 +159,3 @@ func PublishList(c *gin.Context) {
 		VideoList: publicVideoInfo,
 	})
 }
-
-

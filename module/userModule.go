@@ -3,14 +3,16 @@ package module
 import (
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/xwxb/MiniDouyin/config"
 	"github.com/xwxb/MiniDouyin/dao"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-/* 因为在原来表上加 jwt.StandardClaims 好像会引发一些bug？
+/*
+	因为在原来表上加 jwt.StandardClaims 好像会引发一些bug？
+
 所以就新建了一个用来认证的类。
 */
 type userStdClaims struct {
