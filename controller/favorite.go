@@ -33,6 +33,8 @@ func FavoriteAction(c *gin.Context) {
 	vid := c.Request.URL.Query().Get("video_id")
 	at := c.Request.URL.Query().Get("action_type")
 
+	
+
 	vid_int, err := strconv.ParseInt(vid, 10, 64)
 	at_int, err := strconv.ParseInt(at, 10, 64)
 	if err != nil {
@@ -74,8 +76,6 @@ func FavoriteAction(c *gin.Context) {
 	resp := FavRespond{
 		StatusCode: 0,
 	}
-
-	// 考虑是否需要布尔返回值
 	if req.ActionType == 1 {
 		ifFavorAlready, err := favor.UpFavor(uid, req.VideoId)
 
@@ -88,7 +88,6 @@ func FavoriteAction(c *gin.Context) {
 		} else {
 			resp.StatusMsg = "like action failure!"
 		}
-
 	} else if req.ActionType == 2 {
 		ifUnFavAlready, err := favor.UnFav(uid, req.VideoId)
 

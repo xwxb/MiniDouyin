@@ -15,9 +15,8 @@ func UpFavor(userId int64, videoId int64) (bool, error) {
 
 	//包括软删除一起查找是否存在这条记录
 	if found := dao.Db.Unscoped().Where(&fav).First(&fav).Error == nil; found {
-		if fav.DeletedAt.Valid { //如果有软删除记录，那么不用重新创建
-			// If "DeletedAt.Valid" is true, it's deleted.
-			// fav.DeletedAt.Valid = false
+		//如果有软删除记录，那么不用重新创建
+		if fav.DeletedAt.Valid { 
 			dao.Db.Model(&fav).Unscoped().Where(&fav).Update("deleted_at", nil)
 			log.Println("将软删除设置为了无效")
 
@@ -60,6 +59,8 @@ func UpFavor(userId int64, videoId int64) (bool, error) {
 
 	return false, nil
 }
+
+
 
 func UnFav(userId int64, videoId int64) (bool, error) {
 	video, _ := dao.GetVideoByVideoId(videoId)

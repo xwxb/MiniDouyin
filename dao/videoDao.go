@@ -112,7 +112,7 @@ func GetVideoByCreatedTime(lastTime time.Time) (string, error) {
 	err := Db.Model(&Video{}).
 		Preload("Author").
 		Order("create_time desc").
-		Limit(10).
+		Limit(5).
 		Joins("left join user u on user_id = u.id"). //当前视频中能在user表中找到对应人，应该是配合外键
 		Where("create_time < ?", lastTime).
 		Find(&publicVideo).Error

@@ -52,7 +52,7 @@ func GetFeedByUserId(latestTime time.Time, userId int64) (time.Time, []dao.Video
 	folStats := dao.IsFollowedMult(userId, uids)
 
 	// 封装 isFavorite 和 isFollow
-	for i, _ := range FeedList {
+	for i := 0; i < len(FeedList); i++ {
 		FeedList[i].IsFavorite = favStats[i]
 		// log.Println(FeedList[k].IsFavorite)
 		FeedList[i].Author.IsFollow = folStats[i]
