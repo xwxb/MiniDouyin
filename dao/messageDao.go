@@ -15,10 +15,10 @@ func (Message) TableName() string {
 // SendMessage(msg) sends a message, and returns if it is successful
 func SendMessage(message *Message) (bool, error) {
 	err := Db.Model(&Message{}).Create(&message).Error
-	return err == nil, nil
+	return err == nil, err
 }
 
-// returns the list of messages from fromUserId to toUserId after tm(Unix time)
+// returns the list of messages between u1 and u2 after tm(Unix time)
 func GetRecentMessageListByUserId(tm, u1, u2 int64) ([]Message, error) {
 	condi := "from_user_id = ? AND to_user_id = ? AND create_time > ?"
 	order := "create_time ASC"
