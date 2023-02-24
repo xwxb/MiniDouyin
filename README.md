@@ -1,21 +1,36 @@
-# simple-demo
+# 极简版抖音
+本项目由 秒速五字节 小队进行开发
 
-## 抖音项目服务端简单示例
+## 运行说明
+- 需要自行安装 ffmpeg 并配置环境变量
+- 需要新建 `config/hide.go` 文件并填入以下内容
+```go
+
+package config​
+​
+const (​
+    LoginHead    = "user:passwd@tcp(host:port)/schema_name" // 填入数据库连接​
+    COSURL       = "https://xxxxx.cos.ap-guangzhou.myqcloud.com"​// 填入腾讯云 COS 地址
+    COSSecretID  = ​
+    COSSecretKey = 
+    Path         = "./"// ffmpeg 项目目录​
+)
+
+```
+
+
+
+## 抖音项目服务端简单介绍
 
 具体功能内容参考飞书说明文档
+[‌‍⁡‍‍⁣‍​【秒速五字节队】结业项目答辩汇报文档 - 飞书云文档](https://sygubn5jgz.feishu.cn/docx/QJYNdnc3soxIPJxDiqLc3iDXn2e)
 
 工程无其他依赖，直接编译运行即可
 
 ```shell
-go build && ./simple-demo
+go build && go run .
 ```
 
-### 功能说明
-
-接口功能不完善，仅作为示例
-
-* 用户登录数据保存在内存中，单次运行过程中有效
-* 视频上传后会保存到本地 public 目录中，访问时用 127.0.0.1:8080/static/video_name 即可
 
 ### 测试
 
